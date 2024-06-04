@@ -136,7 +136,7 @@ const main = async () => {
     {
       type: "input",
       name: "want",
-      message: "view the repository contents? (y/n)\t"
+      message: "view the repository contents? (y/n) [default=n]\t"
     },
   ]);
   if (askUser.want === "yes" || askUser.want === "y" || askUser.want === "Y") {
@@ -148,14 +148,14 @@ const main = async () => {
     {
       type: "input",
       name: "want",
-      message: "clone the repository? (y/n)\t"
+      message: "clone the repository? (y/n) [default=n]\t"
     }
   ]);
   if (askAgain.want === "yes" || askAgain.want === "y" || askAgain.want === "Y") {
     const lastQuestion = await inquirer.prompt([{
       type: "input",
       name: "choice",
-      message: "clone into a specific directory? (y/n)\t"
+      message: "clone into a specific directory? (y/n) [default=n]\t"
     }]);
     if (lastQuestion.choice === "yes" || lastQuestion.choice === "Y" || lastQuestion.choice === "y") {
       const directoryName = await inquirer.prompt([
