@@ -50,7 +50,8 @@ my-repo
 ```
 in the next input prompt where it will ask you if want to clone into a specific directory.
 
-## **Summary:** gitFM is a convenient command-line tool that can be used to search, view and clone GitHub Repositories. Through this tool, you can easily browse and explore the code repository on GitHub from you fav commandline.
+## Summary: 
+gitFM is a convenient command-line tool that can be used to search, view and clone GitHub Repositories. Through this tool, you can easily browse and explore the code repository on GitHub from you fav commandline.
 
 ## Feedback and contributions
 

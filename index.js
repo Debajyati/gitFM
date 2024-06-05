@@ -1,13 +1,9 @@
 #!/usr/bin/env node
-
 import axios from "axios";
 import inquirer from "inquirer";
 import chalk from "chalk";
 import PrettyError from "pretty-error";
-import { exec as execute } from "node:child_process";
-import { promisify } from "node:util";
-
-const exec = promisify(execute);
+import { exec } from "node:child_process";
 
 const pe = new PrettyError();
 pe.appendStyle({
@@ -44,17 +40,7 @@ pe.appendStyle({
     color: "bright-cyan",
   },
 });
-
-// Prompt the user for a search term
-const promptUser = async () => {
-  return await inquirer.prompt([
-    {
-      type: "input",
-      name: "searchTerm",
-      message: "Enter the search term:",
-    },
-  ]);
-};
+// pe.start();
 
 // Fetch repositories based on the search term
 const fetchRepos = async (searchTerm) => {
@@ -64,7 +50,7 @@ const fetchRepos = async (searchTerm) => {
     );
     return response.data.items;
   } catch (error) {
-    console.error(chalk.bgBlueBright("Error fetching repos:"));
+    console.log(chalk.bgBlueBright("Unexpected Error occured while fetching repos..."));
     process.exit(1);
   }
 };
@@ -72,10 +58,9 @@ const fetchRepos = async (searchTerm) => {
 // Render a single repository
 const renderRepo = (repo) => {
   const { name, description, html_url } = repo;
-  console.log(chalk.blue(name));
-  console.log(chalk.white("Description:"), description);
-  console.log(chalk.bgGreen("URL:"), chalk.yellow(html_url));
-  console.log();
+  console.log(chalk.bgYellow(chalk.black("repo name :")), "\t", chalk.cyanBright(name), '\n');
+  console.log(chalk.bgBlueBright(chalk.black("Description :")), "\t", chalk.bold(description), '\n');
+  console.log(chalk.bgGreen(chalk.black("URL :")), "\t", chalk.yellow(chalk.underline(html_url)), '\n');
 };
 
 // Prompt the user to select a repository from the list
@@ -83,36 +68,46 @@ const promptRepoSelection = async (repos) => {
   const choices = repos.map((repo) => ({ name: repo.full_name, value: repo }));
   return await inquirer.prompt([
     {
-      type: "list",
+      type: "rawlist",
       name: "selectedRepo",
       message: "Select a repository:",
+      loop: false,
       choices,
     },
   ]);
 };
 
-// Fetch the contents of the selected repository
-const fetchRepoContents = async (repoFullName) => {
+// Fetch the contents of the selected repository as an object
+// When response status is 'OK', the content object will be `fetchRepoContents.data` 
+const fetchRepoContentsResponse = async (repoFullName) => {
   try {
     const response = await axios.get(
       `https://api.github.com/repos/${repoFullName}/contents`,
     );
-    return response.data;
+    if (response.statusText === "OK") {
+      return {
+        data: response.data,
+        status: Number(response.status)
+      };
+    }
   } catch (error) {
-    console.log("Error fetching repo contents:", pe.render(error));
-    process.exit(1);
+    console.log(chalk.bgRedBright(chalk.black(`${error.response.data.message}\n`)));
+    return {
+      data: error.response.data,
+      status: Number(error.response.status)
+    }
   }
 };
 
 // Render the repository contents as a folder structure
-const renderRepoContents = (contents, indent = "") => {
+const renderRepoContents = (contents, indent = "  ") => {
   try {
     contents.forEach((item) => {
       if (item.type === "dir") {
-        console.log(chalk.blue(`${indent}${item.name}/`));
-        axios.get(item.url).then((response) => {
+        console.log(`${indent}`,chalk.bgCyanBright(chalk.black(`${item.name}`)), chalk.blueBright('/'));
+        /* axios.get(item.url).then((response) => {
           renderRepoContents(response.data, indent + "  ");
-        });
+        }); */
       } else {
         console.log(`${indent}${item.name}`);
       }
@@ -121,66 +116,94 @@ const renderRepoContents = (contents, indent = "") => {
     console.error(
       chalk.bgBlue("Unexpected Error occured while rendering contents"),
     );
-    console.log(pe.render(error));
   }
 };
 
 const main = async () => {
-  const userInput = await promptUser();
-  const repos = await fetchRepos(userInput.searchTerm);
+  // Prompt the user for a search term
+  const promptUser = await inquirer.prompt([
+    {
+      type: "input",
+      name: "searchTerm",
+      message: "Enter the search term:",
+    },
+  ]);
+  /* function input(query) {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+    return new Promise((resolve) => {
+      rl.question(query, (answer) => {
+        rl.close();
+        resolve(answer);
+      });
+    });
+  } 
+
+  const searchTerm = await input('Enter the search term:'); */
+  const userInput = promptUser.searchTerm;
+
+  const repos = await fetchRepos(userInput);
 
   const { selectedRepo } = await promptRepoSelection(repos);
-  console.log(chalk.magentaBright(`${selectedRepo.full_name}:-`));
   renderRepo(selectedRepo);
   const askUser = await inquirer.prompt([
     {
       type: "input",
       name: "want",
-      message: "view the repository contents? (y/n) [default=n]\t"
+      message: "view the repository contents? (y/n) [default=n] "
     },
   ]);
   if (askUser.want === "yes" || askUser.want === "y" || askUser.want === "Y") {
-    const repoContents = await fetchRepoContents(selectedRepo.full_name);
-    console.log(chalk.green(`Contents of ${selectedRepo.full_name}:`));
-    renderRepoContents(repoContents);
+    const repoContentsResponse = await fetchRepoContentsResponse(selectedRepo.full_name);
+    if (repoContentsResponse.status < 400) {
+      console.log(chalk.green(`Contents of ${selectedRepo.full_name}:\n`));
+      renderRepoContents(repoContentsResponse.data);
+    } else {
+      console.log(`request returned ${repoContentsResponse.status} status response.\n`);
+    }
   } 
   const askAgain = await inquirer.prompt([
     {
       type: "input",
       name: "want",
-      message: "clone the repository? (y/n) [default=n]\t"
+      message: "clone the repository? (y/n) [default=n] "
     }
   ]);
   if (askAgain.want === "yes" || askAgain.want === "y" || askAgain.want === "Y") {
     const lastQuestion = await inquirer.prompt([{
       type: "input",
       name: "choice",
-      message: "clone into a specific directory? (y/n) [default=n]\t"
+      message: "clone into a specific directory? (y/n) [default=n] "
     }]);
     if (lastQuestion.choice === "yes" || lastQuestion.choice === "Y" || lastQuestion.choice === "y") {
       const directoryName = await inquirer.prompt([
         {
           type:"input",
           name:"input",
-          message:"Enter the directory for cloning ->\t"
+          message:"Enter the directory for cloning (WARNING: directory must NOT ALREADY exist!) -> "
         }
       ])
       console.log(chalk.bgMagentaBright("Cloning Initaited!\n"));
-      const {error, stdout, stderr} = await exec(`git clone https://github.com/${selectedRepo.full_name}.git ${directoryName.input}`);
-      if (error) {
-        console.error(pe.render(error));
-        process.exit(1);
-      }
-      console.log("STDOUT :-", stdout);
-      console.log("STDERR :-", stderr);
+      exec(`git clone https://github.com/${selectedRepo.full_name}.git ${directoryName.input}`, (error, stdout, stderr) => {
+        if (error) {
+          console.log(pe.render(error));
+          process.exit(1);
+        }
+        console.log(stdout);
+        console.log(stderr);
+      })
     } else {
       console.log(chalk.bgMagentaBright("Cloning Initaited!\n"));
-      const {error, stdout, stderr} = await exec(`git clone https://github.com/${selectedRepo}.git`);
-      if (error) {
-        console.error(pe.render(error));
-      }
-      console.log("STDOUT :-", stdout);
-      console.log("STDERR :-", stderr);
+      exec(`git clone https://github.com/${selectedRepo.full_name}.git`, (error, stdout, stderr) => {
+        if (error) {
+          console.log(pe.render(error));
+          process.exit(1);
+        }
+        console.log(stdout);
+        console.log(stderr);
+      })
     }
   }
 };
