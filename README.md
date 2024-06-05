@@ -41,13 +41,14 @@ gitFM returns a list of search results. You can select one from the Repository l
 
 After selecting a Repo, gitFM will display detailed information about the Repo, including the Repositories name, description, and GitHub link. You can continue viewing the contents of .
 
-### Clip Repositories
+### Clone Repositories
 
-If you want to select a clip Repository, gitFM will prompt you to select a clip Repository to save from the local inventory. For example, if you want to create a repository in the "my-repo" directory, you can import:
+If you select a Repository, gitFM will prompt you to agree cloning the Repository locally. For example, if you want to create a repository in the "my-repo" directory, you can specify:
 
 ```bash
 my-repo
 ```
+in the next input prompt where it will ask you if want to clone into a specific directory.
 
 ## **Summary:** gitFM is a convenient command-line tool that can be used to search, view and clone GitHub Repositories. Through this tool, you can easily browse and explore the code repository on GitHub from you fav commandline.
 
