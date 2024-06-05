@@ -1,6 +1,6 @@
 {
   "name": "gitfm",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A TUI App for searching github repos, fetching as folder structure and cloning",
   "main": "index.js",
   "scripts": {
