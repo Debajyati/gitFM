@@ -185,7 +185,7 @@ const main = async () => {
     {
       type: "input",
       name: "want",
-      message: `${chalk.cyan(`view the repository contents?`) `(${chalk.green('y')}/${chalk.red('n')}) [default=${chalk.red('n')}] `}`,
+      message: `${chalk.cyan(`view the repository contents?`)} (${chalk.green('y')}/${chalk.red('n')}) [default=${chalk.red('n')}] `,
     },
   ]);
   if (askUser.want === "yes" || askUser.want === "y" || askUser.want === "Y") {
@@ -205,7 +205,7 @@ const main = async () => {
     {
       type: "input",
       name: "want",
-      message: `${chalk.cyan(`clone the repository?`) `(${chalk.green('y')}/${chalk.red('n')}) [default=${chalk.red('n')}] `}`,
+      message: `${chalk.cyan(`clone the repository?`)} (${chalk.green('y')}/${chalk.red('n')}) [default=${chalk.red('n')}] `,
     },
   ]);
   if (
@@ -217,7 +217,7 @@ const main = async () => {
       {
         type: "input",
         name: "choice",
-        message: `${chalk.cyan(`clone into a specific directory?`) `(${chalk.green('y')}/${chalk.red('n')}) [default=${chalk.red('n')}] `}`,
+        message: `${chalk.cyan('clone into a specific directory?')} (${chalk.green('y')}/${chalk.red('n')}) [default=${chalk.red('n')}] `,
       },
     ]);
     if (
@@ -230,7 +230,7 @@ const main = async () => {
           type: "input",
           name: "input",
           message:
-            chalk.cyan("Enter the directory for cloning (WARNING: directory must NOT ALREADY exist!) -> "),
+            chalk.cyan(`Enter the directory for cloning ${chalk.yellow('(WARNING: directory must NOT ALREADY exist!)')} -> `),
         },
       ]);
       console.log(chalk.bgMagentaBright(chalk.black("Cloning Initaited!\n")));
