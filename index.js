@@ -43,28 +43,48 @@ pe.appendStyle({
 // pe.start();
 
 // Fetch repositories based on the search term
-const fetchRepos = async (searchTerm) => {
+async function fetchRepos (searchTerm) {
   try {
     const response = await axios.get(
       `https://api.github.com/search/repositories?q=${searchTerm}`,
     );
-    return response.data.items;
+    return {
+      entries: response.data.items,
+      length: response.data.total_count,
+    };
   } catch (error) {
-    console.log(chalk.bgBlueBright("Unexpected Error occured while fetching repos..."));
+    console.log(
+      chalk.bgBlueBright("Unexpected Error occured while fetching repos..."),
+    );
     process.exit(1);
   }
-};
+}
 
 // Render a single repository
-const renderRepo = (repo) => {
+function renderRepo(repo) {
   const { name, description, html_url } = repo;
-  console.log(chalk.bgYellow(chalk.black("repo name :")), "\t", chalk.cyanBright(name), '\n');
-  console.log(chalk.bgBlueBright(chalk.black("Description :")), "\t", chalk.bold(description), '\n');
-  console.log(chalk.bgGreen(chalk.black("URL :")), "\t", chalk.yellow(chalk.underline(html_url)), '\n');
-};
+  console.log(
+    chalk.bgYellow(chalk.black("repo name :")),
+    "\t",
+    chalk.cyanBright(name),
+    "\n",
+  );
+  console.log(
+    chalk.bgBlueBright(chalk.black("Description :")),
+    "\t",
+    chalk.bold(description),
+    "\n",
+  );
+  console.log(
+    chalk.bgGreen(chalk.black("URL :")),
+    "\t",
+    chalk.yellow(chalk.underline(html_url)),
+    "\n",
+  );
+}
 
 // Prompt the user to select a repository from the list
-const promptRepoSelection = async (repos) => {
+async function promptRepoSelection(repos) {
   const choices = repos.map((repo) => ({ name: repo.full_name, value: repo }));
   return await inquirer.prompt([
     {
@@ -75,11 +95,12 @@ const promptRepoSelection = async (repos) => {
       choices,
     },
   ]);
-};
+}
 
 // Fetch the contents of the selected repository as an object
-// When response status is 'OK', the content object will be `fetchRepoContents.data` 
-const fetchRepoContentsResponse = async (repoFullName) => {
+// When response statusText is 'OK', the content object will be `fetchRepoContentsResponse().data`
+// If response status code is >= 400, the `fetchRepoContentsResponse().data` will be error.response.data
+async function fetchRepoContentsResponse(repoFullName) {
   try {
     const response = await axios.get(
       `https://api.github.com/repos/${repoFullName}/contents`,
@@ -87,24 +108,30 @@ const fetchRepoContentsResponse = async (repoFullName) => {
     if (response.statusText === "OK") {
       return {
         data: response.data,
-        status: Number(response.status)
+        status: Number(response.status),
       };
     }
   } catch (error) {
-    console.log(chalk.bgRedBright(chalk.black(`${error.response.data.message}\n`)));
+    console.log(
+      chalk.bgRedBright(chalk.black(`${error.response.data.message}\n`)),
+    );
     return {
       data: error.response.data,
-      status: Number(error.response.status)
-    }
+      status: Number(error.response.status),
+    };
   }
-};
+}
 
 // Render the repository contents as a folder structure
-const renderRepoContents = (contents, indent = "  ") => {
+function renderRepoContents(contents, indent = "  ") {
   try {
     contents.forEach((item) => {
       if (item.type === "dir") {
-        console.log(`${indent}`,chalk.bgCyanBright(chalk.black(`${item.name}`)), chalk.blueBright('/'));
+        console.log(
+          `${indent}`,
+          chalk.bgCyanBright(chalk.black(`${item.name}`)),
+          chalk.blueBright("/"),
+        );
         /* axios.get(item.url).then((response) => {
           renderRepoContents(response.data, indent + "  ");
         }); */
@@ -117,7 +144,7 @@ const renderRepoContents = (contents, indent = "  ") => {
       chalk.bgBlue("Unexpected Error occured while rendering contents"),
     );
   }
-};
+}
 
 const main = async () => {
   // Prompt the user for a search term
@@ -125,7 +152,7 @@ const main = async () => {
     {
       type: "input",
       name: "searchTerm",
-      message: "Enter the search term:",
+      message: chalk.cyan("Enter the search term:"),
     },
   ]);
   /* function input(query) {
@@ -146,66 +173,101 @@ const main = async () => {
 
   const repos = await fetchRepos(userInput);
 
-  const { selectedRepo } = await promptRepoSelection(repos);
+  if (repos.length < 1) {
+    console.log(`${chalk.red(`${repos.length} Repositories found!`)} `);
+    console.log("Nothing to show");
+    process.exit(1);
+  }
+  const { selectedRepo } = await promptRepoSelection(repos.entries);
   renderRepo(selectedRepo);
+  
   const askUser = await inquirer.prompt([
     {
       type: "input",
       name: "want",
-      message: "view the repository contents? (y/n) [default=n] "
+      message: `${chalk.cyan(`view the repository contents?`) `(${chalk.green('y')}/${chalk.red('n')}) [default=${chalk.red('n')}] `}`,
     },
   ]);
   if (askUser.want === "yes" || askUser.want === "y" || askUser.want === "Y") {
-    const repoContentsResponse = await fetchRepoContentsResponse(selectedRepo.full_name);
+    const repoContentsResponse = await fetchRepoContentsResponse(
+      selectedRepo.full_name,
+    );
     if (repoContentsResponse.status < 400) {
       console.log(chalk.green(`Contents of ${selectedRepo.full_name}:\n`));
       renderRepoContents(repoContentsResponse.data);
     } else {
-      console.log(`request returned ${repoContentsResponse.status} status response.\n`);
+      console.log(
+        `request returned ${repoContentsResponse.status} status response.\n`,
+      );
     }
-  } 
+  }
   const askAgain = await inquirer.prompt([
     {
       type: "input",
       name: "want",
-      message: "clone the repository? (y/n) [default=n] "
-    }
+      message: `${chalk.cyan(`clone the repository?`) `(${chalk.green('y')}/${chalk.red('n')}) [default=${chalk.red('n')}] `}`,
+    },
   ]);
-  if (askAgain.want === "yes" || askAgain.want === "y" || askAgain.want === "Y") {
-    const lastQuestion = await inquirer.prompt([{
-      type: "input",
-      name: "choice",
-      message: "clone into a specific directory? (y/n) [default=n] "
-    }]);
-    if (lastQuestion.choice === "yes" || lastQuestion.choice === "Y" || lastQuestion.choice === "y") {
+  if (
+    askAgain.want === "yes" ||
+    askAgain.want === "y" ||
+    askAgain.want === "Y"
+  ) {
+    const lastQuestion = await inquirer.prompt([
+      {
+        type: "input",
+        name: "choice",
+        message: `${chalk.cyan(`clone into a specific directory?`) `(${chalk.green('y')}/${chalk.red('n')}) [default=${chalk.red('n')}] `}`,
+      },
+    ]);
+    if (
+      lastQuestion.choice === "yes" ||
+      lastQuestion.choice === "Y" ||
+      lastQuestion.choice === "y"
+    ) {
       const directoryName = await inquirer.prompt([
         {
-          type:"input",
-          name:"input",
-          message:"Enter the directory for cloning (WARNING: directory must NOT ALREADY exist!) -> "
-        }
-      ])
-      console.log(chalk.bgMagentaBright("Cloning Initaited!\n"));
-      exec(`git clone https://github.com/${selectedRepo.full_name}.git ${directoryName.input}`, (error, stdout, stderr) => {
-        if (error) {
-          console.log(pe.render(error));
-          process.exit(1);
-        }
-        console.log(stdout);
-        console.log(stderr);
-      })
+          type: "input",
+          name: "input",
+          message:
+            chalk.cyan("Enter the directory for cloning (WARNING: directory must NOT ALREADY exist!) -> "),
+        },
+      ]);
+      console.log(chalk.bgMagentaBright(chalk.black("Cloning Initaited!\n")));
+      exec(
+        `git clone https://github.com/${selectedRepo.full_name}.git ${directoryName.input}`,
+        (error, stdout, stderr) => {
+          if (error) {
+            console.log(pe.render(error));
+            process.exit(1);
+          }
+          console.log(stdout);
+          console.log(stderr);
+        },
+      );
     } else {
-      console.log(chalk.bgMagentaBright("Cloning Initaited!\n"));
-      exec(`git clone https://github.com/${selectedRepo.full_name}.git`, (error, stdout, stderr) => {
-        if (error) {
-          console.log(pe.render(error));
-          process.exit(1);
-        }
-        console.log(stdout);
-        console.log(stderr);
-      })
+      console.log(chalk.bgMagentaBright(chalk.black("Cloning Initaited!\n")));
+      exec(
+        `git clone https://github.com/${selectedRepo.full_name}.git`,
+        (error, stdout, stderr) => {
+          if (error) {
+            console.log(pe.render(error));
+            process.exit(1);
+          }
+          console.log(stdout);
+          console.log(stderr);
+        },
+      );
     }
   }
 };
+
+export {
+  fetchRepos,
+  fetchRepoContentsResponse,
+  promptRepoSelection,
+  renderRepo,
+  renderRepoContents,
+}
 
 main();
