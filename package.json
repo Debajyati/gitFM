@@ -15,7 +15,14 @@
   },
   "type": "module",
   "keywords": [
-    "git", "github", "cloning", "cli", "filesystem", "repo", "fetching", "interactive"
+    "git",
+    "github",
+    "cloning",
+    "cli",
+    "filesystem",
+    "repo",
+    "fetching",
+    "interactive"
   ],
   "author": "Debajyati Dey",
   "license": "ISC",
@@ -26,6 +33,9 @@
     "pretty-error": "^4.0.0"
   },
   "devDependencies": {
-    "@types/inquirer": "^9.0.7"
+    "@eslint/eslintrc": "^3.1.0",
+    "@eslint/js": "^9.12.0",
+    "@types/inquirer": "^9.0.7",
+    "globals": "^15.10.0"
   }
 }

@@ -265,7 +265,6 @@ const main = async () => {
 export {
   fetchRepos,
   fetchRepoContentsResponse,
-  promptRepoSelection,
   renderRepo,
   renderRepoContents,
 }
