@@ -26,10 +26,10 @@ gitFM has a simple command line interface that guides you through the process of
 When you run gitFM, it will prompt you to enter a search keyword. For example, if you want to search for a repository with the name "express", you can enter:
 
 ```bash
-gitfm
+express
 ```
 
-Then, enter `express` in the search input.
+ in the search input.
 
 ### Select Repository
 
