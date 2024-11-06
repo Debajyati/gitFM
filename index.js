@@ -2,45 +2,7 @@
 import axios from "axios";
 import inquirer from "inquirer";
 import chalk from "chalk";
-import PrettyError from "pretty-error";
 import { exec } from "node:child_process";
-
-const pe = new PrettyError();
-pe.appendStyle({
-  // Selector to the element that says `Error`
-  "pretty-error > header > title > kind": {
-    // we hide the title that says `Error`:
-    display: "none",
-  },
-
-  // Selector to the 'colon' after 'Error':
-  "pretty-error > header > colon": {
-    // we hide that too:
-    display: "none",
-  },
-  // our error message
-  "pretty-error > header > message": {
-    color: "bright-white",
-    background: "cyan",
-    padding: "0 1",
-  },
-  // each trace item ...
-  "pretty-error > trace > item": {
-    // ... can have a margin ...
-    marginLeft: 2,
-
-    // ... and a bullet character!
-    bullet: '"<grey>o</grey>"',
-  },
-  "pretty-error > trace > item > header > pointer > file": {
-    color: "bright-cyan",
-  },
-
-  "pretty-error > trace > item > header > pointer > line": {
-    color: "bright-cyan",
-  },
-});
-// pe.start();
 
 // Fetch repositories based on the search term
 async function fetchRepos (searchTerm) {
@@ -155,20 +117,7 @@ const main = async () => {
       message: chalk.cyan("Enter the search term:"),
     },
   ]);
-  /* function input(query) {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-    return new Promise((resolve) => {
-      rl.question(query, (answer) => {
-        rl.close();
-        resolve(answer);
-      });
-    });
-  } 
 
-  const searchTerm = await input('Enter the search term:'); */
   const userInput = promptUser.searchTerm;
 
   const repos = await fetchRepos(userInput);
@@ -238,11 +187,10 @@ const main = async () => {
         `git clone https://github.com/${selectedRepo.full_name}.git ${directoryName.input}`,
         (error, stdout, stderr) => {
           if (error) {
-            console.log(pe.render(error));
+            console.log(chalk.red(error));
             process.exit(1);
           }
           console.log(stdout);
-          console.log(stderr);
         },
       );
     } else {
@@ -251,23 +199,15 @@ const main = async () => {
         `git clone https://github.com/${selectedRepo.full_name}.git`,
         (error, stdout, stderr) => {
           if (error) {
-            console.log(pe.render(error));
+            console.log(chalk.red(error));
             process.exit(1);
-          }
+          } else {
           console.log(stdout);
-          console.log(stderr);
+          }
         },
       );
     }
   }
 };
-
-export {
-  fetchRepos,
-  fetchRepoContentsResponse,
-  promptRepoSelection,
-  renderRepo,
-  renderRepoContents,
-}
 
 main();
