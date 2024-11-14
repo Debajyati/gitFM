@@ -4,7 +4,7 @@ import chalk from "chalk";
 
 async function getCurrentRateLimitsData() {
   const rateLimits = await axios.get("https://api.github.com/rate_limit", {
-    headers: { "X-GitHub-Api-Version": "2022-11-28" },
+    headers: { "X-GitHub-Api-Version": "2022-11-28", "Accept": "application/vnd.github+json" },
   });
 
   return rateLimits.data.resources;
@@ -18,7 +18,7 @@ async function fetchRepos(searchTerm) {
     if (searchRequestsRemaining > 0) {
       const response = await axios.get(
         `https://api.github.com/search/repositories?q=${searchTerm}`, {
-          headers: { "X-GitHub-Api-Version": "2022-11-28" },
+          headers: { "X-GitHub-Api-Version": "2022-11-28", "Accept": "application/vnd.github+json" },
         });
       return {
         entries: response.data.items,
