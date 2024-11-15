@@ -32,11 +32,11 @@ const login = async (authType) => { // authType (optional) = "oauth" | "token"
   const { checkTokenValidity } = await import("../../auth/index.js");
   const storedToken = getStoredToken(config.default.TOKEN_FILE);
 
-  console.log("checking if already authorized!");
+  console.log("checking if already authorized...");
 
   if (storedToken !== null) {
     if (await checkTokenValidity(storedToken)) {
-      console.log("\nUser is already authorized\n");
+      console.log("\nUser is already authorized!\n");
       const { Octokit } = await import("@octokit/rest");
       const octokit = new Octokit({ auth:storedToken });
       return octokit;

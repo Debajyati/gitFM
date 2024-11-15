@@ -21,7 +21,7 @@ async function getOAuthenticationObject() {
     console.log("Opening the Browser Window to Enter the User Code"),
   );
   console.log(
-    "Waiting for the user to grant access through the browser and then close the window ...",
+    "Waiting for the user to grant access through the browser ...",
   );
   if (osType() === "Windows_NT") {
     await open(verification_uri, { wait: true, app: { name: apps.browser } });
