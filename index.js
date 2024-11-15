@@ -1,20 +1,31 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { clearToken, getStoredAuthType, getStoredToken } from './src/auth/tokenHelpers.js';
-import config from "./src/auth/config.js";
-import { userProfile, login } from "./src/utils/authenticated/requests.js";
+import { clearToken, getStoredAuthType, getStoredToken } from './src/gh/auth/tokenHelpers.js';
+import config from "./src/gh/auth/config.js";
+import { userProfile, login } from "./src/gh/utils/authenticated/requests.js";
+
+const packageJson = await (async ()=>{
+  const { createRequire } = await import("node:module");
+  const require = createRequire(import.meta.url);
+  return require("./package.json");
+})();
 const program = new Command();
 
 program.addHelpText('beforeAll', await ( async () => {
-  const { headerText } = await import("./src/utils/headerText.js");
+  const { headerText } = await import("./src/gh/utils/headerText.js");
   return headerText;
 })());
 
 program
-  .command('auth')
+  .name(`${packageJson.name}`)
+  .description(`${packageJson.description}`)
+  .version(`${packageJson.version}`);
+
+program
+  .command('ghauth')
   .description("authorize or unauthorize gitfm with your GitHub")
   .option('--login [TYPE]', "Choose your prefered way to log in. If wrong/no argument is provided, interactive login will take place. Valid arguments - web, token")
-  .option('--logout', "logout from the CLI and delete your token")
+  .option('--logout', "logout from the CLI and delete your GitHub token")
   .action(async (options) => {
 
     if (options.logout) {
