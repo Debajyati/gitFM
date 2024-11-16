@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from "fs";
 
-// Check if a stored token exists and is valid
+// Check if a stored token exists
 function getStoredToken(TOKEN_FILE) {
   if (existsSync(TOKEN_FILE)) {
     const tokenData = JSON.parse(readFileSync(TOKEN_FILE, "utf-8"));
