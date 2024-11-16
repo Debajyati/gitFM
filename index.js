@@ -69,4 +69,18 @@ program
     await userProfile(octokit);
   });
 
+program
+  .command('glauth')
+  .description("authorize or unauthorize gitfm with your GitLab")
+  .option('--login', "login with a personal access token")
+  .option('--logout', "logout and revoke the token")
+  .action(async (options) => {
+    if (options.logout) {
+      // TODO:
+    } else {
+      const { tokenAuthenticate } = await import("./src/gl/auth.js");
+      return await tokenAuthenticate();
+    }
+  })
+
 program.parse();
