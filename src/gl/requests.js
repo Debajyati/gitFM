@@ -7,48 +7,33 @@ const configJson = await (async ()=>{
 
 const CONFIG_FILE = await (async () => {
   const {default:path} = await import("node:path");
-  const dirname  = import.meta.dirname;
-  path.join(dirname, "config.json")
+  const { fileURLToPath } = await import("node:url");
+  const dirname  = path.dirname(fileURLToPath(import.meta.url));
+  return path.join(dirname, "config.json");
 })(); // file path
 
 const baseURL = "https://gitlab.com/api/v4";
 
-async function fetchErrorHandlerCallback(error) {
-  if (typeof error.json === "function") {
-    try {
-      const jsonError = await error.json();
-      console.error("Json error from API");
-      console.log(jsonError);
-    } catch (genericError) {
-      console.error("Generic error from API");
-      console.log(genericError.statusText);
-    }
-  } else {
-    console.error("Fetch error");
-    console.log(error);
-  }
-}
-
 async function revokeToken(token) {
   const url = `${baseURL}/personal_access_tokens/self`;
   try {
-    const response = await fetch(`${url}?${new URLSearchParams({ "expires_at" : expirationDate }).toString()}`, {
+    const response = await fetch(url, {
       method: "DELETE",
       headers: {
         "PRIVATE-TOKEN": token,
       }
     });
-    const data = await response.json();
 
-    if (data.message === "204: No Content") {
+    if (response.status === 204) {
       return "successful";
-    } else if (data.message === "400: Bad Request") {
+    } else if (response.status === 400) {
       return "unsuccessful";
-    } else if (data.message === "401: Unauthorized") {
+    } else if (response.status === 401) {
       return "invalid";
     }
   } catch (error) {
-    await fetchErrorHandlerCallback(error);
+    console.error("Fetch Error");
+    console.log(error);
   }
 }
 
@@ -88,7 +73,74 @@ async function rotateToken(token, expirationDate) {
       }
     }
   } catch (error) {
-    await fetchErrorHandlerCallback(error);
+    console.error("Fetch Error");
+    console.log(error);
+  }
+}
+
+async function userProfile(token) {
+  const { default: boxen } = await import("boxen");
+  const { default: chalk } = await import("chalk");
+  const url = `${baseURL}/user`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "PRIVATE-TOKEN": token,
+      },
+    });
+
+    if (response.ok) {
+      const { name, bio } = await response.json();
+      const profileInfo = `
+  Hello, - ${name}!
+  ${bio}
+  `;
+      console.log(boxen(profileInfo,
+        {title: `${chalk.bgGreenBright('profile')}`, titleAlignment: 'center'}
+      ));
+    } else {
+      console.log(`Request Returned Status ${response.status} Error`);
+      process.exit(1);
+    }
+
+  } catch (error) {
+    console.error("Fetch Error");
+    console.log(error);
+  }
+}
+
+async function getProjects(token, searchTerm) {
+  const url = `${baseURL}/search?scope=projects&search=${searchTerm}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "PRIVATE-TOKEN": token,
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+
+      const projectsList = data.map((project) => ({
+        name: project.path_with_namespace,
+        description: project.descriptions,
+        url: project.http_url_to_repo,
+        projectID: project.id,
+      }));
+
+      return projectsList;
+    } else {
+      console.error(response.statusText);
+      console.error(`Request Returned Status ${response.status} Error`);
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
   }
 }
 
@@ -97,4 +149,6 @@ export {
   configJson,
   revokeToken,
   rotateToken,
+  userProfile,
+  getProjects,
 }
