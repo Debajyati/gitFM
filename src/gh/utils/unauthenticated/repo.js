@@ -1,13 +1,14 @@
-import axios from "axios";
 import search from "@inquirer/search";
 import chalk from "chalk";
 
 async function getCurrentRateLimitsData() {
-  const rateLimits = await axios.get("https://api.github.com/rate_limit", {
+  const response = await fetch("https://api.github.com/rate_limit", {
+    method: "GET",
     headers: { "X-GitHub-Api-Version": "2022-11-28", "Accept": "application/vnd.github+json" },
   });
-
-  return rateLimits.data.resources;
+  
+  const rateLimits = await response.json();
+  return rateLimits.resources;
 }
 
 // Fetch repositories based on the search term
@@ -16,13 +17,14 @@ async function fetchRepos(searchTerm) {
     const rateLimitsData = await getCurrentRateLimitsData();
     const searchRequestsRemaining = Number(rateLimitsData.search.remaining);
     if (searchRequestsRemaining > 0) {
-      const response = await axios.get(
+      const response = await fetch(
         `https://api.github.com/search/repositories?q=${searchTerm}`, {
           headers: { "X-GitHub-Api-Version": "2022-11-28", "Accept": "application/vnd.github+json" },
         });
+      const data = await response.json();
       return {
-        entries: response.data.items,
-        length: response.data.total_count,
+        entries: data.items,
+        length: data.total_count,
       };
     } else {
       console.log(
@@ -109,15 +111,14 @@ async function fetchRepoContentsResponse(repoFullName) {
     const coreRequestsRemaining = Number(rateLimits.core.remaining);
 
     if (coreRequestsRemaining > 0) {
-      const response = await axios.get(
+      const response = await fetch(
         `https://api.github.com/repos/${repoFullName}/contents`,
       );
-      if (response.statusText === "OK") {
-        return {
-          data: response.data,
-          status: Number(response.status),
-        };
-      }
+      const responseData = await response.json();
+      return {
+        data: responseData,
+        status: Number(response.status),
+      };
     } else {
       console.log(
         chalk.yellow(
@@ -126,11 +127,7 @@ async function fetchRepoContentsResponse(repoFullName) {
       );
     }
   } catch (error) {
-    console.error(error.response.data.message,'\n');
-    return {
-      data: error.response.data,
-      status: Number(error.response.status),
-    };
+    console.error(error.message,'\n', "Fetch Error");
   }
 }
 
