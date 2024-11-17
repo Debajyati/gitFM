@@ -1,5 +1,3 @@
-import path from "node:path";
-
 // JSON import of the config file containing the token
 const configJson = await (async ()=>{
   const { createRequire } = await import("node:module");
@@ -7,7 +5,11 @@ const configJson = await (async ()=>{
   return require("./config.json");
 })();
 
-const CONFIG_FILE = path.join(__dirname, "config.json"); // file path
+const CONFIG_FILE = await (async () => {
+  const {default:path} = await import("node:path");
+  const dirname  = import.meta.dirname;
+  path.join(dirname, "config.json")
+})(); // file path
 
 const baseURL = "https://gitlab.com/api/v4";
 
