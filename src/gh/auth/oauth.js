@@ -30,13 +30,19 @@ async function getOAuthenticationObject() {
   }
 
   let currentInterval = interval;
+  let remainingAttempts = 25;
   while (true) {
+    remainingAttempts -= 1;
+    if (remainingAttempts < 0) {
+      console.error("User took too long to respond");
+      return { error: "Request Timeout, try again"};
+    }
     try {
-      const { authentication } = await sleep(currentInterval*1000, await exchangeDeviceCode({
+      const { authentication } = await exchangeDeviceCode({
         clientType: "oauth-app",
         clientId: config.CLIENT_ID,
         code: device_code,
-      }));
+      });
       return authentication; // Exit loop and return authentication object
     } catch (error) {
 
