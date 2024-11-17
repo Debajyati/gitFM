@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import { clearToken, getStoredAuthType, getStoredToken } from './src/gh/auth/tokenHelpers.js';
 import config from "./src/gh/auth/config.js";
 import { userProfile, login } from "./src/gh/utils/authenticated/requests.js";
-import { CONFIG_FILE as GITLAB_CONFIG_FILE } from './src/gl/requests.js';
+const { CONFIG_FILE: GITLAB_CONFIG_FILE } = await import('./src/gl/requests.js');
 
 const packageJson = await (async ()=>{
   const { createRequire } = await import("node:module");
@@ -77,6 +77,8 @@ program
           const resStatus = await revokeToken(token);
           if (resStatus === "successful") {
             console.log("Token successfully revoked!");
+            const { clearToken } = await import("./src/gl/tokenhelpers.js");
+            clearToken(GITLAB_CONFIG_FILE);
           } else if (resStatus === "unsuccessful") {
             console.error("Bad Request: Couldn't revoke successfully!");
             process.exit(1);
@@ -89,6 +91,10 @@ program
           process.exit(1);
         }
       } else if (options.login) {
+        const { configJson } = await import("./src/gl/requests.js");
+        if (configJson.token !== null) {
+          console.log("A token already in use. Checking validity...");
+        }
         const { tokenAuthenticate } = await import("./src/gl/auth.js");
         const token = await tokenAuthenticate();
         const { saveToken } = await import("./src/gl/tokenhelpers.js");
@@ -118,7 +124,8 @@ program
       const octokit = await login();
       await userProfile(octokit);
     } else {
-      // TODO:
+      const { userProfile, configJson } = await import("./src/gl/requests.js");
+      await userProfile(configJson.token);
     }
   });
 
