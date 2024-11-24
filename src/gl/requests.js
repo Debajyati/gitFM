@@ -1,3 +1,5 @@
+import chalk from "chalk";
+
 // JSON import of the config file containing the token
 const configJson = await (async ()=>{
   const { createRequire } = await import("node:module");
@@ -78,39 +80,6 @@ async function rotateToken(token, expirationDate) {
   }
 }
 
-async function userProfile(token) {
-  const { default: boxen } = await import("boxen");
-  const { default: chalk } = await import("chalk");
-  const url = `${baseURL}/user`;
-
-  try {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "PRIVATE-TOKEN": token,
-      },
-    });
-
-    if (response.ok) {
-      const { name, bio } = await response.json();
-      const profileInfo = `
-  Hello, - ${name}!
-  ${bio}
-  `;
-      console.log(boxen(profileInfo,
-        {title: `${chalk.bgGreenBright('profile')}`, titleAlignment: 'center'}
-      ));
-    } else {
-      console.log(`Request Returned Status ${response.status} Error`);
-      process.exit(1);
-    }
-
-  } catch (error) {
-    console.error("Fetch Error");
-    console.log(error);
-  }
-}
-
 async function getProjects(token, searchTerm) {
   const url = `${baseURL}/search?scope=projects&search=${searchTerm}`;
 
@@ -127,7 +96,7 @@ async function getProjects(token, searchTerm) {
 
       const projectsList = data.map((project) => ({
         name: project.path_with_namespace,
-        description: project.descriptions,
+        description: project.description,
         url: project.http_url_to_repo,
         projectID: project.id,
       }));
@@ -144,11 +113,141 @@ async function getProjects(token, searchTerm) {
   }
 }
 
+async function getSingleProject(token, id, recursive=false) {
+  const url = `${baseURL}/projects/${id}/repository/tree?recursive=${recursive}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "PRIVATE-TOKEN": token,
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    } else {
+      console.error(response.statusText);
+      console.error(`Request Returned Status ${response.status} Error`);
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error("Fetch Error!");
+    console.log(error);
+  }
+}
+
+async function listRepoBranches(token, id) {
+  const url = `${baseURL}/projects/${id}/repository/branches`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "PRIVATE-TOKEN": token,
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+
+      return data.map(item => item.name);
+    } else {
+      console.error(response.statusText);
+      console.error(`Request Returned Status ${response.status} Error`);
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error("Fetch Error!");
+    console.log(error);
+  }
+}
+
+function projectInfo(project) {
+  const { name, description, url} = project;
+  console.log('');
+  console.log(
+    chalk.bgGreenBright(chalk.black("repo name :")),
+    "\t",
+    chalk.bold(name),
+    "\n",
+  );
+  console.log(
+    chalk.bgGreenBright(chalk.black("Description :")),
+    "\t",
+    chalk.bold(description),
+    "\n",
+  );
+  console.log(
+    chalk.bgGreenBright(chalk.black("URL :")),
+    "\t",
+    chalk.bold(chalk.underline(url)),
+    "\n",
+  );
+}
+
+async function promptProjectSelection(projects) {
+  const choices = projects.map((project) => ({
+    name: project.name,
+    value: project,
+    description: project.description,
+  }));
+
+  try {
+    const { default: search } = await import("@inquirer/search");
+    return await search({
+      message: `${chalk.greenBright("Select a repository: ")}${chalk.yellow("(Autocomplete Available)")}`,
+      source: async (input, { signal }) => {
+        if (signal.aborted) {
+          console.log(chalk.yellow("Aborted!"));
+          process.exit(1);
+        }
+        if (!input) {
+          return choices;
+        } else {
+          const filteredChoices = choices.filter((choice) =>
+            choice.name.includes(input),
+          );
+          return filteredChoices;
+        }
+      },
+    });
+  } catch (_) {
+    console.log(chalk.yellow("Aborted! Exiting Gracefully..."));
+    process.exit(1);
+  }
+}
+
+// Render the repository contents as a folder structure
+function renderProjectContents(contents, indent = "  ") {
+  try {
+    contents.forEach((item) => {
+      if (item.type === "tree") {
+        console.log(
+          `${indent}`,
+          chalk.bgCyanBright(chalk.black(`${item.name}`)),
+          chalk.blueBright("/"),
+        );
+      } else {
+        console.log(`${indent}${item.name}`);
+      }
+    });
+  } catch (error) {
+    console.error("Unexpected Error occured while rendering contents");
+    console.log(error.message);
+  }
+}
+
 export {
   CONFIG_FILE,
   configJson,
   revokeToken,
   rotateToken,
-  userProfile,
   getProjects,
+  getSingleProject,
+  listRepoBranches,
+  projectInfo,
+  promptProjectSelection,
+  renderProjectContents,
 }
