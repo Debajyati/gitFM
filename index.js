@@ -116,17 +116,26 @@ program
 
 program
   .command('profile')
-  .description("get a minimal overview of your profile")
-  .option('--gl', "GitLab profile")
-  .option('--gh', "GitHub profile")
-  .action(async (options) => {
-    if (options.gh) {
-      const octokit = await login();
-      await userProfile(octokit);
-    } else {
-      const { userProfile, configJson } = await import("./src/gl/requests.js");
-      await userProfile(configJson.token);
-    }
+  .description("get a minimal overview of your GitHub profile")
+  .action(async () => {
+    const octokit = await login();
+    await userProfile(octokit);
   });
+
+program
+  .command('glclone')
+  .description("clone a GitLab repository")
+  .action(
+    async () => {
+      const { interactiveClone } = await import("./src/gl/interactiveFlow.js");
+      const { configJson } = await import("./src/gl/requests.js");
+      await interactiveClone(configJson.token);
+      process.exit(0);
+    }
+  );
+
+/* program
+  .command('stars')
+  .description("get a list of your starred repositories") */
 
 program.parse();
