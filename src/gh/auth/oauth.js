@@ -23,10 +23,17 @@ async function getOAuthenticationObject() {
   console.log(
     "Waiting for the user to grant access through the browser ...",
   );
-  if (osType() === "Windows_NT") {
-    await open(verification_uri, { wait: true, app: { name: apps.browser } });
-  } else {
-    await open(verification_uri, { wait: true });
+  try {
+    if (osType() === "Windows_NT") {
+      await open(verification_uri, { wait: true, app: { name: apps.browser } });
+    } else {
+      await open(verification_uri, { wait: true });
+    }
+  } catch (error) {
+    console.error("Error opening browser:", error.message);
+    console.log("Please manually open the following URL in your browser:");
+    console.log(verification_uri);
+    sleep(3000);
   }
 
   let currentInterval = interval;
