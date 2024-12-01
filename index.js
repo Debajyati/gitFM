@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { clearToken, getStoredAuthType, getStoredToken } from './src/gh/auth/tokenHelpers.js';
-import config from "./src/gh/auth/config.js";
 import { userProfile, login } from "./src/gh/utils/authenticated/requests.js";
 const { CONFIG_FILE: GITLAB_CONFIG_FILE } = await import('./src/gl/requests.js');
 
@@ -26,31 +24,16 @@ program
   .command('ghauth')
   .description("authorize or unauthorize gitfm with your GitHub")
   .option('--login [TYPE]', "Choose your prefered way to log in. If wrong/no argument is provided, interactive login will take place. Valid arguments - web, token")
-  .option('--logout', "logout from the CLI and delete your GitHub token")
+  .option('--logout', "logout from the CLI and delete(revoke) your GitHub token")
+  .option('--refresh', "refresh your GitHub token")
   .action(async (options) => {
 
     if (options.logout) {
-      const { Octokit } = await import("@octokit/rest");
-      const storedToken = getStoredToken(config.TOKEN_FILE);
-
-      if (storedToken === null) {
-        console.error("Error: Token not found");
-        console.error("You are not authenticated");
-
-        process.exit(1);
-      }
-
-      const octokit = new Octokit({ auth: storedToken});
-
-      if (getStoredAuthType(config.TOKEN_FILE) === "oauth") {
-        octokit.rest.apps.deleteToken({
-          client_id: config.CLIENT_ID,
-          access_token: storedToken,
-        });
-      }
-
-      clearToken(config.TOKEN_FILE);
-
+      const { revokeToken } = await import("./src/gh/auth/index.js");
+      await revokeToken();
+    } else if (options.refresh) {
+      const { refreshToken } = await import("./src/gh/auth/index.js");
+      await refreshToken();
     } else {
       if (options.login === "token") {
         await login("token");
@@ -115,12 +98,30 @@ program
   });
 
 program
-  .command('profile')
+  .command('ghprofile')
   .description("get a minimal overview of your GitHub profile")
   .action(async () => {
     const octokit = await login();
     await userProfile(octokit);
   });
+
+program
+  .command('ghclone')
+  .description("clone a GitHub repository")
+  .option('-u, --unauthenticated', 'legacy version of this command (without authentication and partial cloning support)')
+  .action(
+    async (options) => {
+      if (options.unauthenticated || options.u) {
+        const { unAuthenticatedInteractiveClone } = await import("./src/gh/utils/unauthenticated/interactiveFlow.js");
+        await unAuthenticatedInteractiveClone();
+      } else {
+        const { interactiveClone } = await import("./src/gh/utils/authenticated/interactiveFlow.js");
+        const { login } = await import("./src/gh/utils/authenticated/requests.js");
+        const octokit = await login();
+        await interactiveClone(octokit);
+      }
+    }
+  );
 
 program
   .command('glclone')
@@ -130,12 +131,7 @@ program
       const { interactiveClone } = await import("./src/gl/interactiveFlow.js");
       const { configJson } = await import("./src/gl/requests.js");
       await interactiveClone(configJson.token);
-      process.exit(0);
     }
   );
-
-/* program
-  .command('stars')
-  .description("get a list of your starred repositories") */
 
 program.parse();
