@@ -58,6 +58,10 @@ export async function interactiveClone(token) {
   const { default:search } = await import("@inquirer/search");
   const { default:input } = await import("../gh/utils/input.js");
 
+  if (!token) {
+    console.log(chalk.yellow("No Token Found! Exiting Gracefully..."));
+    process.exit(1);
+  }
   const searchTerm = await input(chalk.greenBright("Search a GitLab Project ->"));
   const projects = await getProjects(token, searchTerm);
 
