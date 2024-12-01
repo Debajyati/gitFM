@@ -10,7 +10,7 @@ import {
   promptRepoSelection,
 } from "./repo.js";
 
-async function unAuthenticatedInteractiveFlow() {
+async function unAuthenticatedInteractiveClone() {
   console.log(headerText);
 
   // Prompt the user for a search term
@@ -82,4 +82,4 @@ async function unAuthenticatedInteractiveFlow() {
   }
 }
 
-export { unAuthenticatedInteractiveFlow };
+export { unAuthenticatedInteractiveClone };
