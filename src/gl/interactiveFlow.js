@@ -27,8 +27,16 @@ const partialCloningOptions = [
   {
     name: "Blobless Cloning",
     value: "blobless",
-    description: "clones the repository without downloading the actual file contents (blobs). You only need the repository history",
-  }
+    description: `
+    Clones the repository by fetching only the repository metadata and history.
+    file contents (blobs) fetched on-demand when accessed.`,
+  },
+  {
+    name: "Treeless Cloning",
+    value: "treeless",
+    description:
+      "Clones the repository without checking out the working directory tree,\n including only the repository metadata and history.",
+  },
 ];
 
 export async function interactiveClone(token) {
@@ -40,7 +48,13 @@ export async function interactiveClone(token) {
     promptProjectSelection,
     projectInfo,
   } = await import("./requests.js");
-  const { runShallowClone, runSparseCheckout, runBloblessClone, normalClone } = await import("../../cloning.js");
+  const {
+    runShallowClone,
+    runSparseCheckout,
+    runBloblessClone,
+    runTreelessClone,
+    normalClone,
+  } = await import("../../cloning.js");
   const { default:search } = await import("@inquirer/search");
   const { default:input } = await import("../gh/utils/input.js");
 
@@ -80,6 +94,8 @@ export async function interactiveClone(token) {
 
     if (partialCloningPreference === "shallow") {
       await runShallowClone(selectedProject.url);
+    } else if (partialCloningPreference === "treeless") {
+      await runTreelessClone(selectedProject.url);
     } else if (partialCloningPreference === "sparse") {
       const selectedProjectContents = await (async () => {
         const selectedProjectAllContents = await getSingleProject(token, selectedProject.projectID, true);

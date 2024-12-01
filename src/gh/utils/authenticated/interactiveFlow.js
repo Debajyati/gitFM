@@ -27,7 +27,9 @@ const partialCloningOptions = [
   {
     name: "Blobless Cloning",
     value: "blobless",
-    description: "clones the repository without downloading the actual file contents (blobs). You only need the repository history",
+    description: `
+    Clones the repository by fetching only the repository metadata and history.
+    File contents (blobs) fetched on-demand when accessed.`,
   }
 ];
 
@@ -35,6 +37,7 @@ import {
   runShallowClone,
   runSparseCheckout,
   runBloblessClone,
+  runTreelessClone,
   normalClone,
 } from "../../../../cloning.js";
 
@@ -107,6 +110,8 @@ const interactiveClone = async (octokit) => {
 
     if (partialCloningPreference === "shallow") {
       await runShallowClone(selectedRepo.html_url);
+    } else if (partialCloningPreference === "treeless") {
+      await runTreelessClone(selectedProject.url);
     } else if (partialCloningPreference === "sparse") {
       let selectedFolder = await promptFolderSelectionFromRoot(octokit, selectedRepo.full_name); // yes I've changed this to let from const
       if (selectedFolder === null) {

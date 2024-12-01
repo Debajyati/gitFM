@@ -26,7 +26,7 @@ async function runShallowClone(repoUrl, branchName='', dirName='') {
     if (!branchName) {
       await executeCommand('git', ['clone', '--depth', '1', repoUrl, dirName]);
     } else {
-      await executeCommand('git', ['clone', '--depth', '1', '-b', branchName, repoUrl, dirName]);
+      await executeCommand('git', ['clone', '--depth', '1', '--single-branch', '-b', branchName, repoUrl, dirName]);
     }
     console.log('Shallow cloning completed successfully!');
   } catch (error) {
@@ -43,11 +43,28 @@ async function runBloblessClone(repoUrl, branchName='', dirName='') {
     if (!branchName) {
       await executeCommand('git', ['clone', '--filter=blob:none', repoUrl, dirName]);
     } else {
-      await executeCommand('git', ['clone', '--filter=blob:none', '-b', branchName, repoUrl, dirName]);
+      await executeCommand('git', ['clone', '--filter=blob:none', '--single-branch', '-b', branchName, repoUrl, dirName]);
     }
     console.log('Blobless cloning completed successfully!');
   } catch (error) {
     console.error(`Error during blobless clone process: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+async function runTreelessClone(repoUrl, dirName = '', branch = '') {
+  try {
+    if (!dirName) {
+      dirName = repoUrl.split('/').pop().replace(/\.git$/, '') || 'default-repo';
+    }
+    if (!branch) {
+      await executeCommand('git', ['clone', '--no-checkout', '--filter=tree:0', repoUrl, dirName]);
+    } else {
+      await executeCommand('git', ['clone', '--no-checkout', '--filter=tree:0', '--single-branch', '-b', branch, repoUrl, dirName]);
+    }
+    console.log('Treeless cloning completed successfully!');
+  } catch (error) {
+    console.error(`Error during treeless clone process: ${error.message}`);
     process.exit(1);
   }
 }
@@ -111,4 +128,5 @@ export {
   normalClone,
   runShallowClone,
   runBloblessClone,
+  runTreelessClone,
 }
