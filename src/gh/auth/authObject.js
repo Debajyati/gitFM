@@ -24,7 +24,7 @@ async function getAuthenticationObject(authType = "token") {
       const sleep = promisify(setTimeout);
 
       console.log('Create a new personal access token from your GitHub Developer Settings');
-      console.log(`Check only these scopes from the checkboxes when creating a new token - \n\t${['repo', 'user', 'notifications', 'gist']} `)
+      console.log(`Check only these scopes from the checkboxes when creating the token - \n\t${['repo', 'user']} `);
 
       const personalAcessToken = await sleep(2000, await input("Enter the personal access token "));
       

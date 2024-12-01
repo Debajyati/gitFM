@@ -12,7 +12,7 @@ async function getOAuthenticationObject() {
   } = await createDeviceCode({
     clientType: "oauth-app",
     clientId: config.CLIENT_ID,
-    scopes: ["repo", "user", "notifications", "gist"], // oauth scopes
+    scopes: ["repo", "user"], // oauth scopes
   });
 
   console.log(`\nYour OAuth User Code is - \n\t${user_code}\n`);
