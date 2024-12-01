@@ -105,6 +105,12 @@ export async function interactiveClone(token) {
         const selectedProjectAllContents = await getSingleProject(token, selectedProject.projectID, true);
         return selectedProjectAllContents.filter(content => content.type === "tree");
       })();
+
+      if (!selectedProjectContents.length) {
+        console.log(chalk.yellow("No folders found in the project"));
+        process.exit(1);
+      }
+
       const directoriesFromProjectContents = selectedProjectContents.map((content) => ({
         name: content.path,
         value: content.path,

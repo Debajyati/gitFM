@@ -121,9 +121,9 @@ const interactiveClone = async (octokit) => {
     } else if (partialCloningPreference === "sparse") {
       let selectedFolder = await promptFolderSelectionFromRoot(octokit, selectedRepo.full_name); // yes I've changed this to let from const
       if (selectedFolder === null) {
-        console.log(`${chalk.red(`${selectedFolder.length} Folders found!`)} `);
+        console.log(`${chalk.red(`No Folders found!`)} `);
         console.log("Exiting...");
-        process.exit(0);
+        process.exit(1);
       }
 
       const yesOrNo = await input(chalk.greenBright("Partially clone this selected folder? [Y/N]"));
