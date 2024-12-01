@@ -13,12 +13,16 @@ const userProfile = async (octokit) => {
     },
   } = response;
 
+  const bioToShow = !(bio) ? chalk.yellow("Looks Like You Don't Have a Bio Yet :(") : bio;
+  const followersToShow = !(followers) ? chalk.yellow("no") : chalk.yellow(followers);
+  const followingToShow = !(following) ? chalk.yellow("no one") : chalk.yellow(following);
+
   const profileInfo = `
   Hello, - ${userName}!
-  ${bio}
-  You have ${followers} followers & you follow ${following}
+  ${bioToShow}
+  You have ${followersToShow} followers & you follow ${followingToShow}
 
-  You currently have ${publicRepos} public repos and ${privateRepos} private repos.
+  You currently have ${chalk.yellow(publicRepos)} public repo(s) and ${chalk.yellow(privateRepos)} private repo(s)  
   `;
 
   console.log(boxen(profileInfo,
