@@ -32,6 +32,8 @@ const partialCloningOptions = [
 ];
 
 export async function interactiveClone(token) {
+  const { headerText } = await import("../gh/utils/headerText.js");
+  console.log(headerText);
   const {
     getProjects,
     getSingleProject,
@@ -100,7 +102,6 @@ export async function interactiveClone(token) {
             return directoriesFromProjectContents;
           },
         });
-        pathToDirectory = pathToDirectory;
       await runSparseCheckout(selectedProject.url, '', '', pathToDirectory);
       } catch (error) {
         console.error(error.message);
