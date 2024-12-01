@@ -30,7 +30,13 @@ const partialCloningOptions = [
     description: `
     Clones the repository by fetching only the repository metadata and history.
     File contents (blobs) fetched on-demand when accessed.`,
-  }
+  },
+  {
+    name: "Treeless Cloning",
+    value: "treeless",
+    description:
+      "Clones the repository without checking out the working directory tree,\n including only the repository metadata and history.",
+  },
 ];
 
 import {
