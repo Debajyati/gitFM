@@ -20,6 +20,9 @@ async function executeCommand(command, args = []) {
 
 async function runShallowClone(repoUrl, branchName='', dirName='') {
   try {
+    if (!dirName) {
+      dirName = repoUrl.split('/').pop().replace(/\.git$/, '') || 'default-repo';
+    }
     if (!branchName) {
       await executeCommand('git', ['clone', '--depth', '1', repoUrl, dirName]);
     } else {
@@ -34,6 +37,9 @@ async function runShallowClone(repoUrl, branchName='', dirName='') {
 
 async function runBloblessClone(repoUrl, branchName='', dirName='') {
   try {
+    if (!dirName) {
+      dirName = repoUrl.split('/').pop().replace(/\.git$/, '') || 'default-repo';
+    }
     if (!branchName) {
       await executeCommand('git', ['clone', '--filter=blob:none', repoUrl, dirName]);
     } else {
@@ -74,7 +80,7 @@ async function runSparseCheckout(repoUrl, dirName = '', branch = '', pathToDirec
     await executeCommand('git', ['sparse-checkout', 'add', '!/*', pathToDirectory]);
 
     // Determine default branch if not provided
-    const branchList = (await executeCommand('git', ['ls-remote', '--heads', 'origin']))
+    const branchList = (await executeCommand('git', ['ls-remote', '--sort=-committerdate', '--heads', 'origin']))
       .split('\n')
       .map(line => line.split('\t').pop().replace('refs/heads/', '').trim());
     const defaultLocalBranch = branch || branchList[0] || 'main';
@@ -90,7 +96,9 @@ async function runSparseCheckout(repoUrl, dirName = '', branch = '', pathToDirec
 
 async function normalClone(repoUrl, dirName='') {
   try {
-    await executeCommand('git', ['clone', repoUrl, dirName]);
+    const cloneArgs = ['clone', repoUrl];
+    if (dirName) cloneArgs.push(dirName);
+    await executeCommand('git', cloneArgs);
     console.log('Cloning completed successfully!');
   } catch (error) {
     console.error(`Error during cloning process: ${error.message}`);
