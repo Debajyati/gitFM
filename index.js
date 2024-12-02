@@ -23,7 +23,7 @@ program
 program
   .command('ghauth')
   .description("authorize or unauthorize gitfm with your GitHub")
-  .option('--login [TYPE]', "Choose your prefered way to log in. If wrong/no argument is provided, interactive login will take place. Valid arguments - web, token. \nNote: In case of login with browser, browser will auto open the verification URL only if your default browser is anything between chrome, edge or firefox. Otherwise, you will be prompted to manually open the URL in your browser.")
+  .option('--login [TYPE]', "Choose your prefered way to log in. If wrong/no argument is provided, interactive login will take place. Valid arguments - web, token. \n\nNote: In case of login with browser, browser will auto open the verification URL only if your default browser is anything between chrome, edge or firefox. Otherwise, you will be prompted to manually open the URL in your browser.")
   .option('--logout', "logout from the CLI and delete(revoke) your GitHub token")
   .option('--refresh', "refresh your GitHub token")
   .action(async (options) => {
@@ -133,7 +133,7 @@ program
   .command('clone <REPO_URL> [DIRNAME] [BRANCHNAME]')
   .usage('<REPO_URL> [DIRNAME] [BRANCHNAME] [options]')
   .summary('clone any remote repository using the url. Run `gitfm clone --help` to know how to use this command.')
-  .description('clone any remote git repository using the url. <REPO_URL> is mandatory argument. It is the url of the repository to be cloned. [DIRNAME] and [BRANCHNAME] are optional arguments. [DIRNAME] is the directory name where the repository will be cloned. [BRANCHNAME] is one of all the branches of the remote repository. Only specify if you want to clone a specific branch. If [DIRNAME] is not provided, the repository will be cloned in a directory with the same name as the repository. If [BRANCHNAME] is not provided, the repository will be cloned in the default branch. Exceptionally, in case of sparse cloning [BRANCHNAME] is the branch which will be switched to after cloning is completed. By default(when no [BRANCHNAME] is provided), the algorithm will switch to the branch with the latest commit from the default one after sparse cloning.')
+  .description('clone any remote git repository using the url. <REPO_URL> is mandatory argument. It is the url of the repository to be cloned. [DIRNAME] and [BRANCHNAME] are optional arguments. [DIRNAME] is the directory name where the repository will be cloned. [BRANCHNAME] is one of all the branches of the remote repository. Only specify if you want to clone a specific branch. If [DIRNAME] is not provided, the repository will be cloned in a directory with the same name as the repository. If [BRANCHNAME] is not provided, the repository will be cloned in the default branch.\n\nExceptionally, in case of sparse cloning [BRANCHNAME] is the branch which will be switched to after cloning is completed. By default(when no [BRANCHNAME] is provided), the algorithm will switch to the branch with the latest commit from the default one after sparse cloning.')
   .option('--sparse <PATH_TO_DIRECTORY...>', 'clone only the specified directory or directories of the repository(sparse checkout)')
   .option('--shallow', 'shallow clone only the latest commit of the repository')
   .option('--blobless', 'run a blobless clone of the repository')
