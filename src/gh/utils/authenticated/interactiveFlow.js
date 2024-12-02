@@ -117,7 +117,7 @@ const interactiveClone = async (octokit) => {
     if (partialCloningPreference === "shallow") {
       await runShallowClone(selectedRepo.html_url);
     } else if (partialCloningPreference === "treeless") {
-      await runTreelessClone(selectedProject.url);
+      await runTreelessClone(selectedRepo.html_url);
     } else if (partialCloningPreference === "sparse") {
       let selectedFolder = await promptFolderSelectionFromRoot(octokit, selectedRepo.full_name); // yes I've changed this to let from const
       if (selectedFolder === null) {
