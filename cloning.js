@@ -18,15 +18,15 @@ async function executeCommand(command, args = []) {
   }
 }
 
-async function runShallowClone(repoUrl, branchName='', dirName='') {
+async function runShallowClone(repoUrl, dirName='', branch='') {
   try {
     if (!dirName) {
       dirName = repoUrl.split('/').pop().replace(/\.git$/, '') || 'default-repo';
     }
-    if (!branchName) {
+    if (!branch) {
       await executeCommand('git', ['clone', '--depth', '1', repoUrl, dirName]);
     } else {
-      await executeCommand('git', ['clone', '--depth', '1', '--single-branch', '-b', branchName, repoUrl, dirName]);
+      await executeCommand('git', ['clone', '--depth', '1', '--single-branch', '-b', branch, repoUrl, dirName]);
     }
     console.log('Shallow cloning completed successfully!');
   } catch (error) {
@@ -35,15 +35,15 @@ async function runShallowClone(repoUrl, branchName='', dirName='') {
   }
 }
 
-async function runBloblessClone(repoUrl, branchName='', dirName='') {
+async function runBloblessClone(repoUrl, dirName='', branch='') {
   try {
     if (!dirName) {
       dirName = repoUrl.split('/').pop().replace(/\.git$/, '') || 'default-repo';
     }
-    if (!branchName) {
+    if (!branch) {
       await executeCommand('git', ['clone', '--filter=blob:none', repoUrl, dirName]);
     } else {
-      await executeCommand('git', ['clone', '--filter=blob:none', '--single-branch', '-b', branchName, repoUrl, dirName]);
+      await executeCommand('git', ['clone', '--filter=blob:none', '--single-branch', '-b', branch, repoUrl, dirName]);
     }
     console.log('Blobless cloning completed successfully!');
   } catch (error) {
@@ -76,17 +76,14 @@ async function runSparseCheckout(repoUrl, dirName = '', branch = '', pathToDirec
       throw new Error('Path to directory for sparse checkout cannot be empty.');
     }
 
-    // Derive default directory name if dirName is not provided
     if (!dirName) {
       dirName = repoUrl.split('/').pop().replace(/\.git$/, '') || 'default-repo';
     }
 
-    // Determine git clone command based on inputs
     const cloneArgs = ['clone', '--no-checkout', '--filter=blob:none'];
     if (branch) cloneArgs.push('-b', branch);
     cloneArgs.push(repoUrl, dirName);
 
-    // Execute git clone
     await executeCommand('git', cloneArgs);
 
     // Change to cloned directory
@@ -94,7 +91,12 @@ async function runSparseCheckout(repoUrl, dirName = '', branch = '', pathToDirec
 
     // Initialize sparse-checkout
     await executeCommand('git', ['sparse-checkout', 'set', '--no-cone']);
-    await executeCommand('git', ['sparse-checkout', 'add', '!/*', pathToDirectory]);
+
+    if (pathToDirectory.constructor === Array) {
+      await executeCommand('git', ['sparse-checkout', 'add', '!/*', ...pathToDirectory]);
+    } else {
+      await executeCommand('git', ['sparse-checkout', 'add', '!/*', pathToDirectory]);
+    }
 
     // Determine default branch if not provided
     const branchList = (await executeCommand('git', ['ls-remote', '--sort=-committerdate', '--heads', 'origin']))
@@ -111,9 +113,10 @@ async function runSparseCheckout(repoUrl, dirName = '', branch = '', pathToDirec
   }
 }
 
-async function normalClone(repoUrl, dirName='') {
+async function normalClone(repoUrl, dirName='', branch='') {
   try {
     const cloneArgs = ['clone', repoUrl];
+    if (branch) cloneArgs.push('--single-branch', '--branch', branch);
     if (dirName) cloneArgs.push(dirName);
     await executeCommand('git', cloneArgs);
     console.log('Cloning completed successfully!');
@@ -124,6 +127,7 @@ async function normalClone(repoUrl, dirName='') {
 }
 
 export {
+  executeCommand,
   runSparseCheckout,
   normalClone,
   runShallowClone,
