@@ -23,7 +23,7 @@ program
 program
   .command('ghauth')
   .description("authorize or unauthorize gitfm with your GitHub")
-  .option('--login [TYPE]', "Choose your prefered way to log in. If wrong/no argument is provided, interactive login will take place. Valid arguments - web, token")
+  .option('--login [TYPE]', "Choose your prefered way to log in. If wrong/no argument is provided, interactive login will take place. Valid arguments - web, token. \nNote: In case of login with browser, browser will auto open the verification URL only if your default browser is anything between chrome, edge or firefox. Otherwise, you will be prompted to manually open the URL in your browser.")
   .option('--logout', "logout from the CLI and delete(revoke) your GitHub token")
   .option('--refresh', "refresh your GitHub token")
   .action(async (options) => {
