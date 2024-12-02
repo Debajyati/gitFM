@@ -106,32 +106,78 @@ program
   });
 
 program
-  .command('ghclone')
-  .description("clone a GitHub repository")
-  .option('-u, --unauthenticated', 'legacy version of this command (without authentication and partial cloning support)')
+  .command('icl')
+  .description("interactively clone a GitHub or GitLab repository")
+  .option('-u, --unauthenticated', 'legacy version of the GitHub repo interactive clone command (without authentication and partial cloning support)')
+  .option('--gh', 'clone a GitHub repository')
+  .option('--gl', 'clone a GitLab repository')
   .action(
     async (options) => {
       if (options.unauthenticated || options.u) {
         const { unAuthenticatedInteractiveClone } = await import("./src/gh/utils/unauthenticated/interactiveFlow.js");
         await unAuthenticatedInteractiveClone();
-      } else {
+      } else if (options.gh) {
         const { interactiveClone } = await import("./src/gh/utils/authenticated/interactiveFlow.js");
         const { login } = await import("./src/gh/utils/authenticated/requests.js");
         const octokit = await login();
         await interactiveClone(octokit);
+      } else if (options.gl) {
+        const { interactiveClone } = await import("./src/gl/interactiveFlow.js");
+        const { configJson } = await import("./src/gl/requests.js");
+        await interactiveClone(configJson.token);
       }
     }
   );
 
 program
-  .command('glclone')
-  .description("clone a GitLab repository")
-  .action(
-    async () => {
-      const { interactiveClone } = await import("./src/gl/interactiveFlow.js");
-      const { configJson } = await import("./src/gl/requests.js");
-      await interactiveClone(configJson.token);
-    }
-  );
+  .command('clone <REPO_URL> [DIRNAME] [BRANCHNAME]')
+  .usage('<REPO_URL> [DIRNAME] [BRANCHNAME] [options]')
+  .summary('clone any remote repository using the url. Run `gitfm clone --help` to know how to use this command.')
+  .description('clone any remote git repository using the url. <REPO_URL> is mandatory argument. It is the url of the repository to be cloned. [DIRNAME] and [BRANCHNAME] are optional arguments. [DIRNAME] is the directory name where the repository will be cloned. [BRANCHNAME] is one of all the branches of the remote repository. Only specify if you want to clone a specific branch. If [DIRNAME] is not provided, the repository will be cloned in a directory with the same name as the repository. If [BRANCHNAME] is not provided, the repository will be cloned in the default branch. Exceptionally, in case of sparse cloning [BRANCHNAME] is the branch which will be switched to after cloning is completed. By default(when no [BRANCHNAME] is provided), the algorithm will switch to the branch with the latest commit from the default one after sparse cloning.')
+  .option('--sparse <PATH_TO_DIRECTORY...>', 'clone only the specified directory or directories of the repository(sparse checkout)')
+  .option('--shallow', 'shallow clone only the latest commit of the repository')
+  .option('--blobless', 'run a blobless clone of the repository')
+  .option('--treeless', 'run a treeless clone of the repository')
+  .action(async (REPO_URL, DIRNAME, BRANCHNAME, options) => {
+    const { runSparseCheckout, normalClone, runShallowClone, runBloblessClone, runTreelessClone } = await import("./cloning.js");
 
-program.parse();
+    const optionalArgs = [];
+    const urlPattern = new RegExp('^(https?|ssh):\\/\\/([\\w.-]+(:[\\w.-]+)?@)?([\\w.-]+)(:\\d+)?(\\/[\\w.-]+)*\\/?$');
+    const isValidUrl = (url) => {
+      return urlPattern.test(url);
+    }
+    if (!isValidUrl(REPO_URL)) {
+      console.error(`Invalid URL: ${REPO_URL}`);
+      process.exit(1);
+    }
+
+    if (DIRNAME) {
+      optionalArgs.push(DIRNAME);
+    } else {
+      optionalArgs.push('');
+    }
+    if (BRANCHNAME) {
+      optionalArgs.push(BRANCHNAME);
+    } else {
+      optionalArgs.push('');
+    }
+
+    try {
+      if (options.sparse) {
+        await runSparseCheckout(REPO_URL, ...optionalArgs, options.sparse);
+      } else if (options.shallow) {
+        await runShallowClone(REPO_URL, ...optionalArgs);
+      } else if (options.blobless) {
+        await runBloblessClone(REPO_URL, ...optionalArgs);
+      } else if (options.treeless) {
+        await runTreelessClone(REPO_URL, ...optionalArgs);
+      } else {
+        await normalClone(REPO_URL, ...optionalArgs);
+      }
+    } catch (error) {
+      console.error(`error during ${'`gitfm clone`'}: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+program.parseAsync();
