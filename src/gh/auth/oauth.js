@@ -37,7 +37,7 @@ async function getOAuthenticationObject() {
   }
 
   let currentInterval = interval;
-  let remainingAttempts = 25;
+  let remainingAttempts = 150;
   while (true) {
     remainingAttempts -= 1;
     if (remainingAttempts < 0) {
@@ -70,7 +70,6 @@ async function getOAuthenticationObject() {
         } else if (errorCode === "access_denied") {
           return { error: errorCode }; // Exit loop as the process cannot continue
         } else {
-          console.error(`Unexpected error: ${errorCode}`);
           return {error: `Unexpected 400 status error: ${errorCode}`}; // 400 status unknown errors
         }
       } else {
