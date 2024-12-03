@@ -130,15 +130,15 @@ program
   );
 
 program
-  .command('clone <REPO_URL> [DIRNAME] [BRANCHNAME]')
-  .usage('<REPO_URL> [DIRNAME] [BRANCHNAME] [options]')
+  .command('clone <REPO_URL> [DIRNAME] [BRANCHNAME] [CONE_MODE]')
+  .usage('<REPO_URL> [DIRNAME] [BRANCHNAME] [CONE_MODE] [options]')
   .summary('clone any remote repository using the url. Run `gitfm clone --help` to know how to use this command.')
-  .description('clone any remote git repository using the url. <REPO_URL> is mandatory argument. It is the url of the repository to be cloned. [DIRNAME] and [BRANCHNAME] are optional arguments. [DIRNAME] is the directory name where the repository will be cloned. [BRANCHNAME] is one of all the branches of the remote repository. Only specify if you want to clone a specific branch. If [DIRNAME] is not provided, the repository will be cloned in a directory with the same name as the repository. If [BRANCHNAME] is not provided, the repository will be cloned in the default branch.\n\nExceptionally, in case of sparse cloning [BRANCHNAME] is the branch which will be switched to after cloning is completed. By default(when no [BRANCHNAME] is provided), the algorithm will switch to the branch with the latest commit from the default one after sparse cloning.')
+  .description(' clone any remote git repository using the url. <REPO_URL> is mandatory argument. It is the url of the repository to be cloned. [DIRNAME] and [BRANCHNAME] are optional arguments. [DIRNAME] is the directory name where the repository will be cloned. [BRANCHNAME] is one of all the branches of the remote repository. Only specify if you want to clone a specific branch. If [DIRNAME] is not provided, the repository will be cloned in a directory with the same name as the repository. If [BRANCHNAME] is not provided, the repository will be cloned in the default branch.\n\n Exceptionally, in case of sparse cloning, [BRANCHNAME] is the branch which will be checked out instead of HEAD(you still have access to all the remote branches inside your local clone), at the time of cloning. By default(when no [BRANCHNAME] is provided), the algorithm will switch to the branch with the latest commit, from the default one, after sparse cloning. \n\n [CONE_MODE] is an optional argument meant to be used with only --sparse option. If provided, valid values - cone or nocone. If not provided, default value is nocone. In cone mode you can\'t enter regex pattern(s) to clone all the file(s) and/or director(y|ies) that match the pattern. You have to manually specify whole path of the director(y|ies) and/or file(s) to clone. Also all the files at the repo root will be cloned and you can\'t change it. In nocone mode, you can enter regex patterns. Also you will get rid of the files at the repo root.')
   .option('--sparse <PATH_TO_DIRECTORY...>', 'clone only the specified directory or directories of the repository(sparse checkout)')
   .option('--shallow', 'shallow clone only the latest commit of the repository')
   .option('--blobless', 'run a blobless clone of the repository')
   .option('--treeless', 'run a treeless clone of the repository')
-  .action(async (REPO_URL, DIRNAME, BRANCHNAME, options) => {
+  .action(async (REPO_URL, DIRNAME, BRANCHNAME, CONE_MODE, options) => {
     const { runSparseCheckout, normalClone, runShallowClone, runBloblessClone, runTreelessClone } = await import("./cloning.js");
 
     const optionalArgs = [];
@@ -164,7 +164,18 @@ program
 
     try {
       if (options.sparse) {
-        await runSparseCheckout(REPO_URL, ...optionalArgs, options.sparse);
+        let noCone = true;
+        if (CONE_MODE) {
+          if (CONE_MODE === "nocone") {
+            noCone = true;
+          } else if (CONE_MODE === "cone") {
+            noCone = false;
+          } else {
+            console.error(`Invalid value for argument [CONE_MODE]: ${CONE_MODE}`);
+            process.exit(1);
+          }
+        }
+        await runSparseCheckout(REPO_URL, ...optionalArgs, options.sparse, noCone);
       } else if (options.shallow) {
         await runShallowClone(REPO_URL, ...optionalArgs);
       } else if (options.blobless) {
@@ -175,7 +186,7 @@ program
         await normalClone(REPO_URL, ...optionalArgs);
       }
     } catch (error) {
-      console.error(`error during ${'`gitfm clone`'}: ${error.message}`);
+      console.error(`error during command ${'`gitfm clone`'}: ${error.message}`);
       process.exit(1);
     }
   });
