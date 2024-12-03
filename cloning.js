@@ -69,7 +69,7 @@ async function runTreelessClone(repoUrl, dirName = '', branch = '') {
   }
 }
 
-async function runSparseCheckout(repoUrl, dirName = '', branch = '', pathToDirectory) {
+async function runSparseCheckout(repoUrl, dirName = '', branch = '', pathToDirectory, noCone=true) {
   try {
     // Validate inputs
     if (!pathToDirectory) {
@@ -90,22 +90,30 @@ async function runSparseCheckout(repoUrl, dirName = '', branch = '', pathToDirec
     process.chdir(dirName);
 
     // Initialize sparse-checkout
-    await executeCommand('git', ['sparse-checkout', 'set', '--no-cone']);
-
-    if (pathToDirectory.constructor === Array) {
-      await executeCommand('git', ['sparse-checkout', 'add', '!/*', ...pathToDirectory]);
+    const sparseAddDirArgs = ['sparse-checkout', 'add'];
+    if (noCone) {
+      await executeCommand('git', ['sparse-checkout', 'set', '--no-cone']);
+      sparseAddDirArgs.push('!/*');
     } else {
-      await executeCommand('git', ['sparse-checkout', 'add', '!/*', pathToDirectory]);
+      await executeCommand('git', ['sparse-checkout', 'set', '--cone']);
     }
 
-    // Determine default branch if not provided
-    const branchList = (await executeCommand('git', ['ls-remote', '--sort=-committerdate', '--heads', 'origin']))
+    if (pathToDirectory.constructor === Array) {
+      await executeCommand('git', [...sparseAddDirArgs, ...pathToDirectory]);
+    } else {
+      await executeCommand('git', [...sparseAddDirArgs, pathToDirectory]);
+    }
+
+    if (!branch) {
+      // Determine default branch if not provided
+      const branchList = (await executeCommand('git', ['ls-remote', '--sort=-committerdate', '--heads', 'origin']))
       .split('\n')
       .map(line => line.split('\t').pop().replace('refs/heads/', '').trim());
-    const defaultLocalBranch = branch || branchList[0] || 'main';
+      const defaultLocalBranch = branchList[0] || 'main';
 
-    // Checkout branch
-    await executeCommand('git', ['checkout', defaultLocalBranch]);
+      // Checkout branch
+      await executeCommand('git', ['checkout', defaultLocalBranch]);
+    }
     console.log('Cloning specific directory completed successfully!');
   } catch (error) {
     console.error('Error during sparse checkout process:', error.message || error);
