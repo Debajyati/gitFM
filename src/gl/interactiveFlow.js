@@ -1,43 +1,9 @@
 import chalk from "chalk";
 
-const cloningOptions = [
-  {
-    name: "Normal Cloning",
-    value: "normal",
-    description: "Clones the entire repository, including all branches and history.",
-  },
-  {
-    name: "Partial Cloning",
-    value: "partial",
-    description: "Clones only specific parts of the repository, such as a single branch or a subset of files.",
-  }
-];
-
-const partialCloningOptions = [
-  {
-    name: "Shallow Cloning",
-    value: "shallow",
-    description: "shallow clone only the latest commit",
-  },
-  {
-    name: "Sparse Cloning",
-    value: "sparse",
-    description: "clone only a specific folder",
-  },
-  {
-    name: "Blobless Cloning",
-    value: "blobless",
-    description: `
-    Clones the repository by fetching only the repository metadata and history.
-    file contents (blobs) fetched on-demand when accessed.`,
-  },
-  {
-    name: "Treeless Cloning",
-    value: "treeless",
-    description:
-      "Clones the repository without checking out the working directory tree,\n including only the repository metadata and history.",
-  },
-];
+import {
+  cloningOptions,
+  partialCloningOptions,
+} from "../../cloneOpts.js";
 
 export async function interactiveClone(token) {
   const { headerText } = await import("../gh/utils/headerText.js");
@@ -128,7 +94,7 @@ export async function interactiveClone(token) {
             return directoriesFromProjectContents;
           },
         });
-      await runSparseCheckout(selectedProject.url, '', '', pathToDirectory);
+      await runSparseCheckout(selectedProject.url, '', '', pathToDirectory, true);
       } catch (error) {
         console.error(error.message);
         process.exit(1); 
