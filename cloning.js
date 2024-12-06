@@ -81,7 +81,7 @@ async function runSparseCheckout(repoUrl, dirName = '', branch = '', pathToDirec
     }
 
     const cloneArgs = ['clone', '--no-checkout', '--filter=blob:none'];
-    if (branch) cloneArgs.push('-b', branch);
+    // if (branch) cloneArgs.push('-b', branch);
     cloneArgs.push(repoUrl, dirName);
 
     await executeCommand('git', cloneArgs);
@@ -104,16 +104,14 @@ async function runSparseCheckout(repoUrl, dirName = '', branch = '', pathToDirec
       await executeCommand('git', [...sparseAddDirArgs, pathToDirectory]);
     }
 
-    if (!branch) {
-      // Determine default branch if not provided
-      const branchList = (await executeCommand('git', ['ls-remote', '--sort=-committerdate', '--heads', 'origin']))
-      .split('\n')
-      .map(line => line.split('\t').pop().replace('refs/heads/', '').trim());
-      const defaultLocalBranch = branchList[0] || 'main';
+    // Determine default branch if not provided
+    const branchList = (await executeCommand('git', ['ls-remote', '--sort=-committerdate', '--heads', 'origin']))
+    .split('\n')
+    .map(line => line.split('\t').pop().replace('refs/heads/', '').trim());
+    const defaultLocalBranch = branch || branchList[0] || 'main';
 
-      // Checkout branch
-      await executeCommand('git', ['checkout', defaultLocalBranch]);
-    }
+    // Checkout branch
+    await executeCommand('git', ['checkout', defaultLocalBranch]);
     console.log('Cloning specific directory completed successfully!');
   } catch (error) {
     console.error('Error during sparse checkout process:', error.message || error);
