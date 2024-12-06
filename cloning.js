@@ -112,7 +112,7 @@ async function runSparseCheckout(repoUrl, dirName = '', branch = '', pathToDirec
 
     // Checkout branch
     await executeCommand('git', ['checkout', defaultLocalBranch]);
-    console.log('Cloning specific directory completed successfully!');
+    console.log('Cloning portion of the repo completed successfully!');
   } catch (error) {
     console.error('Error during sparse checkout process:', error.message || error);
     process.exit(1);
