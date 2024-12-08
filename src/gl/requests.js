@@ -1,20 +1,32 @@
 import chalk from "chalk";
-
-// JSON import of the config file containing the token
-const configJson = await (async ()=>{
-  const { createRequire } = await import("node:module");
-  const require = createRequire(import.meta.url);
-  return require("./config.json");
-})();
-
-const CONFIG_FILE = await (async () => {
-  const {default:path} = await import("node:path");
-  const { fileURLToPath } = await import("node:url");
-  const dirname  = path.dirname(fileURLToPath(import.meta.url));
-  return path.join(dirname, "config.json");
-})(); // file path
+import { config } from "./config.js";
+const { TOKEN_FILE:CONFIG_FILE } = config;
 
 const baseURL = "https://gitlab.com/api/v4";
+
+const checkTokenIsValid = async (token) => {
+  const url = `${baseURL}/personal_access_tokens`;
+
+  try {
+    const response = await fetch(url,{
+      method: "GET",
+      headers: {
+        "PRIVATE-TOKEN": token,
+      }
+    });
+
+    if (response.status === 401) {
+      console.error("invalid access token: Aborted!");
+      process.exit(1);
+    } else {
+      console.log("Authentication Successful");
+      return token;
+    }
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+}
 
 async function revokeToken(token) {
   const url = `${baseURL}/personal_access_tokens/self`;
@@ -241,7 +253,7 @@ function renderProjectContents(contents, indent = "  ") {
 
 export {
   CONFIG_FILE,
-  configJson,
+  checkTokenIsValid,
   revokeToken,
   rotateToken,
   getProjects,

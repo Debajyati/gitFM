@@ -1,19 +1,30 @@
 import { existsSync, writeFileSync } from "fs";
 
+// Check if a stored token exists
+function getStoredToken(TOKEN_FILE) {
+  if (existsSync(TOKEN_FILE)) {
+    const tokenData = JSON.parse(readFileSync(TOKEN_FILE, "utf-8"));
+    if (tokenData && tokenData.token) {
+      return tokenData.token;
+    }
+  } else {
+    return null;
+  }
+}
 // Save token and the authType to a file with type key
-function saveToken(tokenData, CONFIG_FILE) {
-  writeFileSync(CONFIG_FILE, JSON.stringify(tokenData, null, 2));
+function saveToken(tokenData, TOKEN_FILE) {
+  writeFileSync(TOKEN_FILE, JSON.stringify(tokenData, null, 2));
 }
 
 // Clear token from storage
-function clearToken(CONFIG_FILE) {
-  if (existsSync(CONFIG_FILE)) {
+function clearToken(TOKEN_FILE) {
+  if (existsSync(TOKEN_FILE)) {
     const dataToSave = {
       token: null,
     };
-    writeFileSync(CONFIG_FILE, JSON.stringify(dataToSave, null, 2));
+    writeFileSync(TOKEN_FILE, JSON.stringify(dataToSave, null, 2));
   }
 }
 
-export { saveToken, clearToken };
+export { getStoredToken, saveToken, clearToken };
 

@@ -53,9 +53,10 @@ program
   .option('--rotate <EXPIRY_DATE>', "rotate the personal access token with an Expiry Date (NOTE: Expiry Date has to be in YYYY-MM-DD format!)")
   .action(async (options) => {
     try {
+      const { getStoredToken } = await import("./src/gl/tokenhelpers.js");
       if (options.logout) {
-        const { revokeToken, configJson } = await import("./src/gl/requests.js");
-        const token = configJson.token;
+        const { revokeToken } = await import("./src/gl/requests.js");
+        const token = getStoredToken(GITLAB_CONFIG_FILE);
         if (token !== null) {
           const resStatus = await revokeToken(token);
           if (resStatus === "successful") {
@@ -74,14 +75,26 @@ program
           process.exit(1);
         }
       } else if (options.login) {
-        const { configJson } = await import("./src/gl/requests.js");
-        if (configJson.token !== null) {
-          console.log("A token already in use. Checking validity...");
+        const storedtoken = getStoredToken(GITLAB_CONFIG_FILE);
+        const authenticate = async () => {
+          const { tokenAuthenticate } = await import("./src/gl/auth.js");
+          const token = await tokenAuthenticate();
+          const { saveToken } = await import("./src/gl/tokenhelpers.js");
+          saveToken({token: token}, GITLAB_CONFIG_FILE);
         }
-        const { tokenAuthenticate } = await import("./src/gl/auth.js");
-        const token = await tokenAuthenticate();
-        const { saveToken } = await import("./src/gl/tokenhelpers.js");
-        saveToken({token: token}, GITLAB_CONFIG_FILE);
+        if (storedtoken !== null) {
+          console.log("A token already in use. Checking validity...");
+          const { checkTokenIsValid } = await import("./src/gl/requests.js");
+          const storedTokenIsValid = await checkTokenIsValid(storedtoken);
+          if (storedTokenIsValid) {
+            console.log("Token is valid!");
+          } else {
+            console.error("Token is invalid or expired!");
+            await authenticate();
+          }
+        } else {
+          await authenticate();
+        }
       } else {
         const { rotateToken, configJson } = await import("./src/gl/requests.js");
         const token = configJson.token;
