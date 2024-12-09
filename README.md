@@ -36,5 +36,5 @@ To get more info about any individual command of gitfm, run - `gitfm help <comma
 
 If you encounter any problems or have any suggestions when using gitFM, you are welcome to submit an issue in the [GitHub repository](https://github.com/Debajyati/gitFM).
 
-## Star This repo
+## Star🌟 This repo
 Show some love to this project by starring it. It will help in increasing the visibility of this project and also in motivating me to work on this project more often.
