@@ -30,6 +30,10 @@ export async function interactiveClone(token) {
   }
   const searchTerm = await input(chalk.greenBright("Search a GitLab Project ->"));
   const projects = await getProjects(token, searchTerm);
+  if (!projects.length) {
+    console.log(chalk.yellow("No Projects Found! Exiting Gracefully..."));
+    process.exit(1);
+  }
 
   const selectedProject = await promptProjectSelection(projects);
   projectInfo(selectedProject);
