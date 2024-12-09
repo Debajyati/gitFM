@@ -1,6 +1,6 @@
 {
   "name": "gitfm",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A CLI App for searching GitHub/GitLab repos, fetching as filesystem and cloning",
   "main": "index.js",
   "scripts": {
