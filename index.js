@@ -136,8 +136,8 @@ program
         await interactiveClone(octokit);
       } else if (options.gl) {
         const { interactiveClone } = await import("./src/gl/interactiveFlow.js");
-        const { storedToken } = await import("./src/gl/tokenhelpers.js");
-        const token = storedToken(GITLAB_CONFIG_FILE);
+        const { getStoredToken } = await import("./src/gl/tokenhelpers.js");
+        const token = getStoredToken(GITLAB_CONFIG_FILE);
         await interactiveClone(token);
       }
     }

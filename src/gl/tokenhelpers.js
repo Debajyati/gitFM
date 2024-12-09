@@ -1,4 +1,4 @@
-import { existsSync, writeFileSync } from "fs";
+import { readFileSync, existsSync, writeFileSync } from "fs";
 
 // Check if a stored token exists
 function getStoredToken(TOKEN_FILE) {
