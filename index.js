@@ -205,4 +205,118 @@ program
     }
   });
 
+program
+  .command("ghs [TERM]")
+  .description("get a tabular list of GitHub repositories matching the given search term")
+  .option("--me", "show only repositories owned by the current user")
+  .option("-p, --private", "show only private repositories owned by the current user")
+  .option("-s, --starred", "show only starred repositories")
+  .option("-u, --user <USER>", "show only repositories owned by the given user")
+  .option("-l, --language <LANGUAGE>", "show only repositories written in the given language")
+  .option("-t, --topic", "show only repositories with the given topic")
+  .option("-r, --readme", "show only repositories with terms matching in the README")
+  .action(async (TERM, options) => {
+    const mapRepos = (repos) => {
+      if (!repos) {
+        console.error("No repositories found!");
+        process.exit(1);
+      }
+      return repos.map((repo) => {
+        let desc = repo.description;
+        if (desc) {
+          if (desc.length > 175) {
+            desc = desc.substring(0, 175) + "...";
+          }
+        }
+        return {
+          name: repo.full_name,
+          url: repo.html_url,
+          description: desc,
+        };
+      });
+    };
+
+    const {
+      login,
+      fetchRepos,
+      fetchStarredRepos,
+      fetchYourPrivateRepos,
+      fetchReposByUserName,
+      fetchReposBySearchingInReadme,
+      fetchReposBySearchingInTopics,
+      fetchReposBySearchingInLanguages,
+    } = await import("./src/gh/utils/authenticated/requests.js");
+    try {
+      if (options.me) {
+        const octokit = await login();
+        const response = await octokit.rest.users.getAuthenticated();
+        const userName = response.data.login;
+        const repos = await fetchReposByUserName(octokit, userName);
+        const mappedRepos = mapRepos(repos.items);
+        console.table(mappedRepos, ['name', 'description']);
+      }
+      if (options.user) {
+        const octokit = await login();
+        const userName = options.user;
+        const mappedRepos = mapRepos((await fetchReposByUserName(octokit, userName)).items);
+        console.table(mappedRepos, ['name', 'description']);
+      }
+
+      if (options.private) {
+        const octokit = await login();
+        const mappedRepos = mapRepos((await fetchYourPrivateRepos(octokit)).items);
+        console.table(mappedRepos, ['name', 'description']);
+      }
+
+      if (options.starred) {
+        const octokit = await login();
+        const mappedRepos = mapRepos((await fetchStarredRepos(octokit)).items);
+        console.table(mappedRepos, ['name', 'description']);
+      }
+
+      if (options.language) {
+        if (!TERM) {
+          console.error("No search term provided!");
+          process.exit(1);
+        }
+        const octokit = await login();
+        const mappedRepos = mapRepos((await fetchReposBySearchingInLanguages(octokit, TERM, options.language)).items);
+        console.table(mappedRepos, ['name', 'description']);
+      }
+
+      if (options.topic) {
+        if (!TERM) {
+          console.error("No search term provided!");
+          process.exit(1);
+        }
+        const octokit = await login();
+        const mappedRepos = mapRepos((await fetchReposBySearchingInTopics(octokit, TERM)).items);
+        console.table(mappedRepos, ['name', 'description']);
+      }
+
+      if (options.readme) {
+        if (!TERM) {
+          console.error("No search term provided!");
+          process.exit(1);
+        }
+        const octokit = await login();
+        const mappedRepos = mapRepos((await fetchReposBySearchingInReadme(octokit, TERM)).items);
+        console.table(mappedRepos, ['name', 'description']);
+      }
+
+      if (Object.keys(options).length === 0) {
+        if (!TERM) {
+          console.error("No search term provided!");
+          process.exit(1);
+        }
+        const octokit = await login();
+        const mappedRepos = mapRepos((await fetchRepos(octokit, TERM)).items);
+        console.table(mappedRepos, ['name', 'description']);
+      }
+    } catch (error) {
+      console.error(`error during command ${'`gitfm ghs`'}: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
 program.parseAsync();
