@@ -37,7 +37,7 @@
   "author": "Debajyati Dey",
   "license": "ISC",
   "dependencies": {
-    "@inquirer/prompts": "^7.0.1",
+    "@inquirer/input": "^4.1.0",
     "@inquirer/search": "^3.0.1",
     "@octokit/oauth-methods": "^5.1.2",
     "@octokit/rest": "^21.0.2",
