@@ -1,4 +1,4 @@
-import { input as inputPrompt } from "@inquirer/prompts";
+import inputPrompt from "@inquirer/input";
 import chalk from "chalk";
 
 async function input(message) {

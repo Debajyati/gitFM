@@ -40,7 +40,7 @@ const login = async (authType) => { // authType (optional) = "oauth" | "token"
 
   if (storedToken !== null) {
     if (await checkTokenValidity(storedToken)) {
-      console.log("\nUser is already authorized!\n");
+      console.log("User is already authorized!\n");
       const { Octokit } = await import("@octokit/rest");
       const octokit = new Octokit({ auth:storedToken });
       return octokit;
@@ -101,7 +101,7 @@ const fetchReposByUserName = async (octokit, userName) => {
 
 const fetchReposBySearchingInReadme = async (octokit, searchTerm) => {
   const response = await octokit.rest.search.repos({
-    q: `q=${encodeURIComponent(`${searchTerm} in:readme`)}`,
+    q: `${searchTerm} in:readme`,
     per_page: 100,
   });
   return {
@@ -112,7 +112,7 @@ const fetchReposBySearchingInReadme = async (octokit, searchTerm) => {
 
 const fetchReposBySearchingInTopics = async (octokit, searchTerm) => {
   const response = await octokit.rest.search.repos({
-    q: `q=${encodeURIComponent(`${searchTerm} in:topics`)}`,
+    q: `${searchTerm} in:topics`,
     per_page: 100,
   });
   return {
@@ -123,7 +123,7 @@ const fetchReposBySearchingInTopics = async (octokit, searchTerm) => {
 
 const fetchReposBySearchingInLanguages = async (octokit, searchTerm, language) => {
   const response = await octokit.rest.search.repos({
-    q: `q=${encodeURIComponent(`${searchTerm} language:${language}`)}`,
+    q: `${searchTerm} language:${language}`,
     per_page: 100,
   });
   return {
@@ -319,6 +319,7 @@ export {
   getRepoFolderContents,
   promptFolderSelectionFromRoot,
   promptFolderSelectionFromSubFolder,
+  mapRepos,
   filterMapRepoContents,
   getCurrentRateLimits,
 };
