@@ -31,6 +31,14 @@ To get more info about any individual command of gitfm, run - `gitfm help <comma
 - **`gitfm ghprofile`** :- Shows a minimal view of your GitHub profile. This command takes no arguments. Requires you to be authenticated. If not, it will autostart interactive authentication mode. When authentication process will complete, it will show your profile info.
 - **`gitfm glauth [options]`** :- This command also contains 3 options - `--login`, `--logout`, `--rotate`. You can authenticate gitfm with your Gitlab account only using a personal access token. Browser login is not supported and won't be implemented in future. The token is stored in a JSON file(`.gl.gitfmrc.json`) inside the `$HOME` directory of your system. For more info, run - `gitfm glauth -h` or `gitfm help glauth`.
 - **`gitfm icl [options]`** :- This command has three options - `--gh`, `--gl` and `--unauthenticated`. When none of them are provided, it will do nothing.. If you want to interactively search and clone a GitHub repository, run `gitfm icl --gh`. If you want to interactively search and clone a GitLab repository, run `gitfm icl --gl`. If you want to run the legacy version of the GitHub repo interactive clone command(without partial cloning support but doesn't require authentication), run `gitfm icl --unauthenticated`. For more info about the options, run `gitfm icl --help` or `gitfm help icl`.
+- **`gitfm ghs [TERM]`** :- This command gets a tabular list of GitHub repositories matching the given search term.
+    - `--me`: Show only repositories owned by the current user.
+    - `-p, --private`: Show only private repositories owned by the current user.
+    - `-s, --starred`: Show only starred repositories.
+    - `-u, --user <USER>`: Show only repositories owned by the given user.
+    - `-l, --language <LANGUAGE>`: Show only repositories written in the given language.
+    - `-t, --topic`: Show only repositories with the given topic.
+    - `-r, --readme`: Show only repositories with terms matching in the README.
 
 ## Feedback
 
