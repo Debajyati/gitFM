@@ -1,3 +1,5 @@
+import chalk from "chalk";
+
 const userProfile = async (octokit) => {
   const { default: boxen } = await import("boxen");
   const { default: chalk } = await import("chalk");
@@ -38,37 +40,41 @@ const login = async (authType) => { // authType (optional) = "oauth" | "token"
 
   console.log("checking if already authorized...");
 
-  if (storedToken !== null) {
-    if (await checkTokenValidity(storedToken)) {
-      console.log("User is already authorized!\n");
-      const { Octokit } = await import("@octokit/rest");
-      const octokit = new Octokit({ auth:storedToken });
-      return octokit;
-    } else {
-      console.error("\nLooks Like Your Token Expired! Initiating Authorization\n");
-      const { clearToken } = await import("../../auth/tokenHelpers.js");
-      clearToken();
-      const { authLogin, authLoginInteractive } = await import("../../auth/index.js");
-      if (authType) {
-        return await authLogin(authType);
+  try {
+    if (storedToken !== null) {
+      if (await checkTokenValidity(storedToken)) {
+        console.log("User is already authorized!\n");
+        const { Octokit } = await import("@octokit/rest");
+        const octokit = new Octokit({ auth:storedToken });
+        return octokit;
       } else {
-        return await authLoginInteractive();
+        console.error("\nLooks Like Your Token Expired! Initiating Authorization\n");
+        const { clearToken } = await import("../../auth/tokenHelpers.js");
+        clearToken();
+        const { authLogin, authLoginInteractive } = await import("../../auth/index.js");
+        if (authType) {
+          return await authLogin(authType);
+        } else {
+          return await authLoginInteractive();
+        }
+      }
+    } else {
+      if (authType === "oauth") {
+        const { authLogin } = await import("../../auth/index.js");
+        const octokit = await authLogin("oauth");
+        return octokit;
+      } else if (authType === "token") {
+        const { authLogin } = await import("../../auth/index.js");
+        const octokit = await authLogin("token");
+        return octokit;
+      } else {
+        const { authLoginInteractive } = await import("../../auth/index.js");
+        const octokit = await authLoginInteractive();
+        return octokit;
       }
     }
-  } else {
-    if (authType === "oauth") {
-      const { authLogin } = await import("../../auth/index.js");
-      const octokit = await authLogin("oauth");
-      return octokit;
-    } else if (authType === "token") {
-      const { authLogin } = await import("../../auth/index.js");
-      const octokit = await authLogin("token");
-      return octokit;
-    } else {
-      const { authLoginInteractive } = await import("../../auth/index.js");
-      const octokit = await authLoginInteractive();
-      return octokit;
-    }
+  } catch (error) {
+    console.log(chalk.red(error.message));
   }
 }
 

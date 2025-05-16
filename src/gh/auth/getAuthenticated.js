@@ -17,7 +17,7 @@ async function checkTokenValidity(token) {
       return false;
     }
   } catch (error) {
-    if (error.status === 401) {
+    if (error.status >= 401) {
       return false;
     } else {
       throw new Error("Error checking token:", error.message);

@@ -21,23 +21,18 @@ program
   .version(`${packageJson.version}`);
 
 program
-  .command('ghauth')
-  .description("authorize or unauthorize gitfm with your GitHub")
-  .option('--login [TYPE]', "Choose your prefered way to log in. If wrong/no argument is provided, interactive login will take place. Valid arguments - web, token. \n\nNote: In case of login with browser, browser will auto open the verification URL only if your default browser is anything between chrome, edge or firefox. Otherwise, you will be prompted to manually open the URL in your browser.")
-  .option('--logout', "logout from the CLI and delete(revoke) your GitHub token")
-  .option('--refresh', "refresh your GitHub token")
+  .command('gh')
+  .description("authorize gitfm with your GitHub")
+  .option('--auth [TYPE]', "Choose your prefered way to log in. If wrong/no argument is provided, interactive login will take place. Valid arguments - web, token. \n\nNote: In case of login with browser, browser will auto open the verification URL only if your default browser is anything between chrome, edge or firefox. Otherwise, you will be prompted to manually open the URL in your browser.")
+  .option('--profile',"get a minimal overview of your GitHub profile")
   .action(async (options) => {
-
-    if (options.logout) {
-      const { revokeToken } = await import("./src/gh/auth/index.js");
-      await revokeToken();
-    } else if (options.refresh) {
-      const { refreshToken } = await import("./src/gh/auth/index.js");
-      await refreshToken();
+    if (options.profile) {
+      const octokit = await login();
+      await userProfile(octokit);
     } else {
-      if (options.login === "token") {
+      if (options.auth === "token") {
         await login("token");
-      } else if (options.login === "web") {
+      } else if (options.auth === "web") {
         await login("oauth");
       } else {
         await login();
@@ -46,7 +41,7 @@ program
   });
 
 program
-  .command('glauth')
+  .command('gl')
   .description("authorize or unauthorize gitfm with your GitLab")
   .option('--login', "login with a personal access token")
   .option('--logout', "logout and revoke the token")
@@ -108,14 +103,6 @@ program
       console.error(error);
       process.exit(1);
     }
-  });
-
-program
-  .command('ghprofile')
-  .description("get a minimal overview of your GitHub profile")
-  .action(async () => {
-    const octokit = await login();
-    await userProfile(octokit);
   });
 
 program
