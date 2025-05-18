@@ -48,6 +48,7 @@ program
   .option('--rotate <EXPIRY_DATE>', "rotate the personal access token with an Expiry Date (NOTE: Expiry Date has to be in YYYY-MM-DD format!)")
   .action(async (options) => {
     try {
+      const { default: converter } = await import("./src/base64.js")
       const { getStoredToken } = await import("./src/gl/tokenhelpers.js");
       if (options.logout) {
         const { revokeToken } = await import("./src/gl/requests.js");
@@ -80,7 +81,7 @@ program
         if (storedtoken !== null) {
           console.log("A token already in use. Checking validity...");
           const { checkTokenIsValid } = await import("./src/gl/requests.js");
-          const storedTokenIsValid = await checkTokenIsValid(storedtoken);
+          const storedTokenIsValid = await checkTokenIsValid(converter.btoa(storedtoken));
           if (storedTokenIsValid) {
             console.log("Token is valid!");
           } else {
@@ -91,8 +92,9 @@ program
           await authenticate();
         }
       } else {
-        const { rotateToken, configJson } = await import("./src/gl/requests.js");
-        const token = configJson.token;
+        const { rotateToken } = await import("./src/gl/requests.js");
+        const { getStoredToken } = await import("./src/gl/tokenhelpers.js");
+        const token = getStoredToken(GITLAB_CONFIG_FILE);
         const { saveToken } = await import("./src/gl/tokenhelpers.js");
         const expiryDate = options.rotate;
 
