@@ -5,7 +5,7 @@ async function getAuthenticationObject(authType = "token") {
     if (authType === "oauth") {
       const { getOAuthenticationObject } = await import("./oauth.js");
       const oAuthObject = await getOAuthenticationObject();
-      if (oAuthObject.hasOwnProperty('error')) {
+      if (Object.prototype.hasOwnProperty.call(oAuthObject,'error')) {
         return {
           authStatus: unauthentication.type,
           reason: unauthentication.reason(oAuthObject.error),

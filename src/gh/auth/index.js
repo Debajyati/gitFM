@@ -1,6 +1,6 @@
 const { getVerifiedAuthToken, checkTokenValidity } = await import("./getAuthenticated.js");
 const { Octokit } = await import("@octokit/rest");
-const { saveToken } = await import("./tokenHelpers.js");
+const { saveToken, getStoredToken } = await import("./tokenHelpers.js");
 import config from "./config.js";
 
 const authLoginInteractive = async () => {
@@ -34,7 +34,7 @@ const authLogin = async (authType) => {
       ? await getVerifiedAuthToken("oauth")
       : await getVerifiedAuthToken();
   saveToken(tokenData, config.TOKEN_FILE);
-  const octokit = new Octokit({ auth: tokenData.token });
+  const octokit = new Octokit({ auth: getStoredToken(config.TOKEN_FILE) });
   return octokit;
 };
 
