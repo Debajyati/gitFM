@@ -1,4 +1,10 @@
-const cloningOptions = [
+type CloningOption = {
+  name: string;
+  value: string;
+  description: string;
+};
+
+const cloningOptions: Array<CloningOption> = [
   {
     name: "Normal Cloning",
     value: "normal",
@@ -11,7 +17,7 @@ const cloningOptions = [
   }
 ];
 
-const partialCloningOptions = [
+const partialCloningOptions: Array<CloningOption> = [
   {
     name: "Shallow Cloning",
     value: "shallow",
@@ -38,3 +44,4 @@ const partialCloningOptions = [
 ];
 
 export { cloningOptions, partialCloningOptions };
+
